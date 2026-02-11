@@ -1,7 +1,7 @@
-// ===============================
-// ADMIN DASHBOARD JAVASCRIPT
-// Pure JavaScript - No Framework Dependencies
-// ===============================
+
+// admin dashboard
+//till javascript(basic) bhaskar
+
 
 // Session storage key
 const ADMIN_SESSION_KEY = 'adminLoggedIn';
@@ -25,7 +25,7 @@ function isAdminAuthenticated() {
 function displayAdminInfo() {
     const adminEmail = localStorage.getItem(ADMIN_EMAIL_KEY);
     if (adminEmail) {
-        // Update admin profile display
+        // Updates admin profile display
         const adminProfile = document.getElementById('adminProfile');
         if (adminProfile) {
             const nameSpan = adminProfile.querySelector('span:first-of-type');
@@ -45,18 +45,14 @@ function handleLogout() {
     }
 }
 
-// Sample Data
+// Sample Data for showing(from internet)
 const vendorsData = [
-    { id: 'VND001', storeName: 'TechWorld', ownerName: 'John Smith', email: 'john@techworld.com', products: 45, revenue: 12580.50, status: 'approved' },
-    { id: 'VND002', storeName: 'GadgetHub', ownerName: 'Sarah Johnson', email: 'sarah@gadgethub.com', products: 32, revenue: 9845.25, status: 'approved' },
-    { id: 'VND003', storeName: 'SportZone', ownerName: 'Mike Davis', email: 'mike@sportzone.com', products: 28, revenue: 7650.00, status: 'approved' },
-    { id: 'VND004', storeName: 'FashionPro', ownerName: 'Emily Chen', email: 'emily@fashionpro.com', products: 0, revenue: 0, status: 'pending' },
-    { id: 'VND005', storeName: 'HomeEssentials', ownerName: 'David Wilson', email: 'david@homeessentials.com', products: 18, revenue: 5420.75, status: 'approved' },
-    { id: 'VND006', storeName: 'BadVendor', ownerName: 'Spam User', email: 'spam@bad.com', products: 2, revenue: 150.00, status: 'banned' },
+    { id: 'VND001', storeName: 'TECH WORLD', ownerName: 'RAJU', email: 'raju@gmail.com', products: 45, revenue: 12580.50, status: 'approved' },
+    
 ];
 
 const productsData = [
-    { id: 'PRD001', name: 'Wireless Headphones', vendor: 'TechWorld', category: 'Electronics', price: 79.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100', status: 'approved' },
+    { id: 'PRD001', name: 'Wireless Headphones', vendor: 'TECH WORLD', category: 'Electronics', price: 79.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100', status: 'approved' },
     { id: 'PRD002', name: 'Smart Watch Pro', vendor: 'GadgetHub', category: 'Electronics', price: 299.99, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100', status: 'pending' },
     { id: 'PRD003', name: 'Running Shoes', vendor: 'SportZone', category: 'Sports', price: 89.99, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100', status: 'approved' },
     { id: 'PRD004', name: 'Designer Handbag', vendor: 'FashionPro', category: 'Fashion', price: 159.99, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=100', status: 'pending' },
@@ -65,36 +61,31 @@ const productsData = [
 ];
 
 const ordersData = [
-    { id: 'ORD12458', customer: 'Alice Brown', vendor: 'TechWorld', product: 'Wireless Headphones', amount: 79.99, date: '2026-02-08', status: 'delivered' },
-    { id: 'ORD12459', customer: 'Bob Williams', vendor: 'GadgetHub', product: 'Smart Watch Pro', amount: 299.99, date: '2026-02-08', status: 'processing' },
-    { id: 'ORD12460', customer: 'Carol Martinez', vendor: 'SportZone', product: 'Running Shoes', amount: 89.99, date: '2026-02-07', status: 'shipped' },
-    { id: 'ORD12461', customer: 'David Lee', vendor: 'HomeEssentials', product: 'Coffee Maker', amount: 129.99, date: '2026-02-07', status: 'pending' },
-    { id: 'ORD12462', customer: 'Eva Garcia', vendor: 'TechWorld', product: 'Wireless Headphones', amount: 79.99, date: '2026-02-06', status: 'refunded' },
+    { id: 'ORD12458', customer: 'Vikram', vendor: 'TECH WORLD', product: 'Wireless Headphones', amount: 1779.99, date: '2026-02-08', status: 'delivered' },
+    
 ];
 
 const usersData = [
-    { id: 'USR001', name: 'Alice Brown', email: 'alice@email.com', type: 'Customer', joinDate: '2025-12-15', orders: 12, status: 'active' },
-    { id: 'USR002', name: 'Bob Williams', email: 'bob@email.com', type: 'Customer', joinDate: '2026-01-05', orders: 5, status: 'active' },
-    { id: 'USR003', name: 'John Smith', email: 'john@techworld.com', type: 'Vendor', joinDate: '2025-11-20', orders: 145, status: 'active' },
-    { id: 'USR004', name: 'Spam User', email: 'spam@bad.com', type: 'Vendor', joinDate: '2026-02-01', orders: 0, status: 'banned' },
+    { id: 'USR001', name: 'Vikram', email: 'vikram@email.com', type: 'Customer', joinDate: '2025-12-15', orders: 12, status: 'active' },
+    { id: 'USR002', name: 'Bhaskar', email: 'bhaskar@email.com', type: 'Customer', joinDate: '2026-01-05', orders: 5, status: 'active' },
+    { id: 'USR003', name: 'Raju', email: 'raju@gmail.com', type: 'Vendor', joinDate: '2025-11-20', orders: 145, status: 'active' },
+    
 ];
 
 const complaintsData = [
-    { id: 'CMP001', type: 'Product Issue', customer: 'Alice Brown', vendor: 'TechWorld', orderId: 'ORD12450', priority: 'high', status: 'open', date: '2026-02-09' },
-    { id: 'CMP002', type: 'Delivery Delay', customer: 'Bob Williams', vendor: 'GadgetHub', orderId: 'ORD12451', priority: 'medium', status: 'inprogress', date: '2026-02-08' },
-    { id: 'CMP003', type: 'Refund Request', customer: 'Carol Martinez', vendor: 'SportZone', orderId: 'ORD12452', priority: 'high', status: 'open', date: '2026-02-08' },
-    { id: 'CMP004', type: 'Wrong Item', customer: 'David Lee', vendor: 'HomeEssentials', orderId: 'ORD12453', priority: 'medium', status: 'resolved', date: '2026-02-07' },
+    { id: 'CMP001', type: 'Product Issue', customer: 'vikram', vendor: 'TECH WORLD', orderId: 'ORD12450', priority: 'high', status: 'open', date: '2026-02-09' },
+    
 ];
 
 const payoutsData = [
-    { id: 'PAY001', vendor: 'TechWorld', amount: 12580.50, commission: 1887.08, netAmount: 10693.42, date: '2026-02-01', status: 'completed' },
+    { id: 'PAY001', vendor: 'TECH WORLD', amount: 12580.50, commission: 1887.08, netAmount: 10693.42, date: '2026-02-01', status: 'completed' },
     { id: 'PAY002', vendor: 'GadgetHub', amount: 9845.25, commission: 1476.79, netAmount: 8368.46, date: '2026-02-01', status: 'completed' },
     { id: 'PAY003', vendor: 'SportZone', amount: 7650.00, commission: 1147.50, netAmount: 6502.50, date: '2026-02-01', status: 'pending' },
 ];
 
-// ===============================
+
 // Navigation & Menu Handling
-// ===============================
+
 
 function initializeApp() {
     setupNavigation();
@@ -161,9 +152,7 @@ function setupNotifications() {
     }
 }
 
-// ===============================
 // Modal Handling
-// ===============================
 
 function setupModals() {
     const modal = document.getElementById('approvalModal');
@@ -207,9 +196,9 @@ function closeModal() {
     }
 }
 
-// ===============================
+
 // Tabs Handling
-// ===============================
+
 
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -376,9 +365,9 @@ function renderPayoutsTable() {
     `).join('');
 }
 
-// ===============================
+
 // Action Functions
-// ===============================
+
 
 function viewVendor(id) {
     const vendor = vendorsData.find(v => v.id === id);
@@ -571,9 +560,9 @@ function resolveComplaint(id) {
     }
 }
 
-// ===============================
-// Charts (Placeholder - can be replaced with Chart.js)
-// ===============================
+
+// Charts sample dummy charts ,can be used later by real ones
+
 
 function initializeCharts() {
     drawRevenueChart();
