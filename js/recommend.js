@@ -1,8 +1,5 @@
-// ===== RECOMMENDATION SYSTEM =====
-// Keyword-based recommendation engine
-// Enhanced for stability + better scoring (still student-level)
 
-// ===== CONFIGURATION =====
+//  CONFIGURATION 
 const RECOMMEND_CONFIG = {
     MAX_RECOMMENDATIONS: 8,
     MIN_SCORE: 0.1,
@@ -12,14 +9,14 @@ const RECOMMEND_CONFIG = {
 };
 
 
-// ===== SAFE PARSE HELPER (Enhancement) =====
+// SAFE PARSE HELPER (Enhancement)
 function safeParseRec(raw, fallback) {
     try { return JSON.parse(raw); }
     catch { return fallback; }
 }
 
 
-// ===== SAVE CLICKED PRODUCT =====
+// SAVE CLICKED PRODUCT 
 function saveClickedProduct(productId) {
 
     const product = getProductById(productId);
@@ -45,7 +42,7 @@ function saveClickedProduct(productId) {
 }
 
 
-// ===== GET CLICKED =====
+// GET CLICKED
 function getClickedProducts() {
     return safeParseRec(
         localStorage.getItem(RECOMMEND_CONFIG.STORAGE_KEY),
@@ -54,7 +51,7 @@ function getClickedProducts() {
 }
 
 
-// ===== SEARCH KEYWORD EXTRACTION =====
+// SEARCH KEYWORD EXTRACTION
 function extractKeywordsFromSearches() {
 
     const searchHistory = getSearchHistory() || [];
@@ -82,7 +79,7 @@ function extractKeywordsFromSearches() {
 }
 
 
-// ===== CLICK KEYWORD EXTRACTION =====
+// CLICK KEYWORD EXTRACTION 
 function extractKeywordsFromClicks() {
 
     const clicked = getClickedProducts() || [];
@@ -109,7 +106,7 @@ function extractKeywordsFromClicks() {
 }
 
 
-// ===== MERGE KEYWORD MAPS (Enhancement — bug fix) =====
+//MERGE KEYWORD MAPS
 function mergeKeywordMaps(mapA, mapB) {
 
     const merged = new Map(mapA);
@@ -122,7 +119,7 @@ function mergeKeywordMaps(mapA, mapB) {
 }
 
 
-// ===== SCORE =====
+// SCORE
 function calculateProductScore(product, userKeywords, userCategories) {
 
     if (!product || !Array.isArray(product.keywords)) return 0;
@@ -151,7 +148,7 @@ function calculateProductScore(product, userKeywords, userCategories) {
     // diversity penalty
     if (alreadyClicked) score *= 0.35;
 
-    // quality boosts (small — believable)
+    // quality boosts 
     if (product.rating >= 4.5) score *= 1.15;
     if (product.reviews > 100) score *= 1.10;
 
@@ -159,7 +156,7 @@ function calculateProductScore(product, userKeywords, userCategories) {
 }
 
 
-// ===== MAIN RECOMMENDER =====
+// MAIN RECOMMENDER
 function getRecommendedProducts(maxResults = RECOMMEND_CONFIG.MAX_RECOMMENDATIONS) {
 
     const allProducts = getAllProducts();
@@ -169,7 +166,6 @@ function getRecommendedProducts(maxResults = RECOMMEND_CONFIG.MAX_RECOMMENDATION
     const { keywords: clickKeywords, categories } =
         extractKeywordsFromClicks();
 
-    // FIX: proper merge instead of overwrite
     const userKeywords =
         mergeKeywordMaps(searchKeywords, clickKeywords);
 
@@ -208,7 +204,7 @@ function getRecommendedProducts(maxResults = RECOMMEND_CONFIG.MAX_RECOMMENDATION
 }
 
 
-// ===== POPULAR =====
+// POPULAR
 function getPopularProducts(maxResults = 8) {
 
     return [...getAllProducts()]
@@ -220,7 +216,7 @@ function getPopularProducts(maxResults = 8) {
 }
 
 
-// ===== SIMILAR =====
+//SIMILAR 
 function getSimilarProducts(productId, maxResults = 4) {
 
     const product = getProductById(productId);
@@ -256,7 +252,7 @@ function getSimilarProducts(productId, maxResults = 4) {
 }
 
 
-// ===== TRENDING =====
+// TRENDING
 function getTrendingProducts(maxResults = 8) {
 
     const clicked = getClickedProducts();
@@ -285,7 +281,7 @@ function getTrendingProducts(maxResults = 8) {
 }
 
 
-// ===== RENDER =====
+// RENDER
 function renderRecommendedProducts() {
 
     const container = document.getElementById('recommendedProducts');
@@ -304,7 +300,7 @@ function renderRecommendedProducts() {
 }
 
 
-// ===== PRODUCT CARD =====
+// PRODUCT CARD
 function createProductCard(product) {
 
     const img = product.image || 'assets/images/placeholder.png';
@@ -336,7 +332,7 @@ function createProductCard(product) {
 }
 
 
-// ===== VIEW PRODUCT =====
+// VIEW PRODUCT 
 function viewProduct(productId) {
     saveClickedProduct(productId);
     window.location.href =
@@ -344,7 +340,7 @@ function viewProduct(productId) {
 }
 
 
-// ===== CLEAR DATA =====
+// CLEAR DATA
 function clearRecommendationData() {
     localStorage.removeItem(RECOMMEND_CONFIG.STORAGE_KEY);
     localStorage.removeItem(APP_CONFIG.SEARCH_HISTORY_KEY);
