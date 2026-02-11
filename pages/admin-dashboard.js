@@ -246,7 +246,7 @@ function renderVendorsTable() {
             <td>${vendor.ownerName}</td>
             <td>${vendor.email}</td>
             <td>${vendor.products}</td>
-            <td>$${vendor.revenue.toFixed(2)}</td>
+            <td>₹${vendor.revenue.toFixed(2)}</td>
             <td><span class="badge ${vendor.status}">${vendor.status}</span></td>
             <td>
                 <button class="action-btn view" onclick="viewVendor('${vendor.id}')">View</button>
@@ -294,7 +294,7 @@ function renderOrdersTable() {
             <td>${order.customer}</td>
             <td>${order.vendor}</td>
             <td>${order.product}</td>
-            <td>$${order.amount.toFixed(2)}</td>
+            <td>₹${order.amount.toFixed(2)}</td>
             <td>${order.date}</td>
             <td><span class="badge ${order.status}">${order.status}</span></td>
             <td>
@@ -357,9 +357,9 @@ function renderPayoutsTable() {
         <tr>
             <td>${payout.id}</td>
             <td>${payout.vendor}</td>
-            <td>$${payout.amount.toFixed(2)}</td>
-            <td>$${payout.commission.toFixed(2)}</td>
-            <td>$${payout.netAmount.toFixed(2)}</td>
+            <td>₹${payout.amount.toFixed(2)}</td>
+            <td>₹${payout.commission.toFixed(2)}</td>
+            <td>₹${payout.netAmount.toFixed(2)}</td>
             <td>${payout.date}</td>
             <td><span class="badge ${payout.status === 'completed' ? 'delivered' : 'pending'}">${payout.status}</span></td>
         </tr>
@@ -379,7 +379,7 @@ function viewVendor(id) {
                 <p><strong>Owner:</strong> ${vendor.ownerName}</p>
                 <p><strong>Email:</strong> ${vendor.email}</p>
                 <p><strong>Products:</strong> ${vendor.products}</p>
-                <p><strong>Revenue:</strong> $${vendor.revenue.toFixed(2)}</p>
+                <p><strong>Revenue:</strong> ₹${vendor.revenue.toFixed(2)}</p>
                 <p><strong>Status:</strong> <span class="badge ${vendor.status}">${vendor.status}</span></p>
             </div>
         `;
@@ -422,7 +422,7 @@ function viewProduct(id) {
                 <p><strong>Product Name:</strong> ${product.name}</p>
                 <p><strong>Vendor:</strong> ${product.vendor}</p>
                 <p><strong>Category:</strong> ${product.category}</p>
-                <p><strong>Price:</strong> $${product.price.toFixed(2)}</p>
+                <p><strong>Price:</strong> ₹${product.price.toFixed(2)}</p>
                 <p><strong>Status:</strong> <span class="badge ${product.status}">${product.status}</span></p>
             </div>
         `;
@@ -473,7 +473,7 @@ function viewOrder(id) {
                 <p><strong>Customer:</strong> ${order.customer}</p>
                 <p><strong>Vendor:</strong> ${order.vendor}</p>
                 <p><strong>Product:</strong> ${order.product}</p>
-                <p><strong>Amount:</strong> $${order.amount.toFixed(2)}</p>
+                <p><strong>Amount:</strong> ₹${order.amount.toFixed(2)}</p>
                 <p><strong>Date:</strong> ${order.date}</p>
                 <p><strong>Status:</strong> <span class="badge ${order.status}">${order.status}</span></p>
             </div>

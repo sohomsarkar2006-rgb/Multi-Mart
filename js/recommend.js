@@ -5,7 +5,7 @@ const RECOMMEND_CONFIG = {
     MIN_SCORE: 0.1,
     RECENT_SEARCHES_WEIGHT: 0.4,
     CLICKED_PRODUCTS_WEIGHT: 0.6,
-    STORAGE_KEY: 'shopHub_clickedProducts'
+    STORAGE_KEY: 'MultiMart_clickedProducts'
 };
 
 
