@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - ShopHub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+    <div class="navbar-top">
+        <a href="user-home.html" class="navbar-logo">🛒 ShopHub</a>
+    </div>
+</nav>
+
+<!-- ===== CONFIRMATION WRAPPER ===== -->
+<div class="container">
+    <div class="confirmation-card">
+
+        <div class="confirmation-icon">✅</div>
+
+        <h1 class="confirmation-title">
+            Order Placed Successfully
+        </h1>
+
+        <p class="confirmation-subtitle">
+            Thank you for your order. We received it and will process it shortly.
+        </p>
+
+        <!-- Order Details -->
+        <div id="orderDetails" class="order-details-card"></div>
+
+        <div class="confirmation-actions">
+            <button class="btn-primary" onclick="window.location.href='user-home.html'">
+                Continue Shopping
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="../js/main.js"></script>
+<script src="../js/auth.js"></script>
+
+<script>
+const orderData = sessionStorage.getItem('lastOrder');
+
+if (!orderData) {
+    alert('No order found');
+    window.location.href = 'user-home.html';
+} else {
+    const order = JSON.parse(orderData);
+    displayOrderDetails(order);
+    sessionStorage.removeItem('lastOrder');
+}
+
+function displayOrderDetails(order) {
+    const container = document.getElementById('orderDetails');
+
+    let itemsHTML = '';
+
+    order.items.forEach(item => {
+        itemsHTML += `
+            <div class="order-row">
+                <span>${item.name} x${item.quantity}</span>
+                <span>${formatPrice(item.price * item.quantity)}</span>
+            </div>
+        `;
+    });
+
+    container.innerHTML = `
+        <h3 class="order-block-title">Order Info</h3>
+
+        <div class="order-meta">
+            <p><strong>Order ID:</strong> #${order.id.substr(-8)}</p>
+            <p><strong>Date:</strong> ${formatDate(order.createdAt)}</p>
+            <p><strong>Status:</strong> <span class="badge badge-warning">Pending</span></p>
+        </div>
+
+        <h4 class="order-block-title">Items</h4>
+        ${itemsHTML}
+
+        <div class="order-total-box">
+            <div class="order-row"><span>Subtotal</span><span>${formatPrice(order.subtotal)}</span></div>
+            <div class="order-row"><span>Tax</span><span>${formatPrice(order.tax)}</span></div>
+            <div class="order-row"><span>Shipping</span><span>${order.shipping === 0 ? 'FREE' : formatPrice(order.shipping)}</span></div>
+
+            <div class="order-row order-total">
+                <span>Total</span>
+                <span>${formatPrice(order.total)}</span>
+            </div>
+        </div>
+
+        <div class="order-address-box">
+            <h4>Shipping Address</h4>
+            <p>${order.customerName}<br>${order.shippingAddress}</p>
+        </div>
+
+        <div class="order-address-box">
+            <h4>Payment Method</h4>
+            <p>${order.paymentMethod}</p>
+        </div>
+    `;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ShopHub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-box">
+            
+            <div class="login-header">
+                <h1>MultiMart</h1>
+                <p class="role-badge" id="roleBadge">Customer Login</p>
+            </div>
+
+            <div id="alertBox" class="hidden"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email"
+                        placeholder="Enter your email"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                        placeholder="Enter your password"
+                        required>
+                </div>
+
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="form-footer">
+                <p>
+                    Don’t have an account?
+                    <a href="#" onclick="toggleRegisterForm(); return false;">
+                        Register here
+                    </a>
+                </p>
+
+                <p style="margin-top:10px;">
+                    <a href="../index.html">← Back to Home</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ===== REGISTER MODAL ===== -->
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h2 class="modal-title">Register New Account</h2>
+                <button class="modal-close" onclick="closeRegisterModal()">
+                    &times;
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <form id="registerForm" onsubmit="handleRegister(event)">
+
+                    <div class="form-group">
+                        <label for="regName">Full Name</label>
+                        <input type="text" id="regName" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword"
+                               name="password"
+                               minlength="6"
+                               placeholder="At least 6 characters"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regConfirmPassword">Confirm Password</label>
+                        <input type="password" id="regConfirmPassword"
+                               name="confirmPassword"
+                               required>
+                    </div>
+
+                    <div id="vendorFields" class="form-group hidden">
+                        <label for="storeName">Store Name (for vendors)</label>
+                        <input type="text" id="storeName" name="storeName">
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        Register
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===== SCRIPTS ===== -->
+
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+
+    <script>
+        // ===== ROLE SETUP =====
+        let currentRole = sessionStorage.getItem('selectedRole') || 'customer';
+
+        const roleBadge = document.getElementById('roleBadge');
+
+        const roleNames = {
+            customer: "Customer",
+            vendor: "Vendor",
+            admin: "Admin"
+        };
+
+        roleBadge.textContent = roleNames[currentRole] + " Login";
+
+
+        // ===== LOGIN =====
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const email = form.email.value;
+            const password = form.password.value;
+
+            const btn = document.getElementById("loginBtn");
+            btn.disabled = true;
+            btn.textContent = "Checking...";
+
+            const result = login(email, password, currentRole);
+
+            const alertBox = document.getElementById("alertBox");
+            alertBox.className = result.success ? 
+                "alert alert-success" : 
+                "alert alert-error";
+
+            alertBox.textContent = result.message;
+            alertBox.classList.remove("hidden");
+
+            if (result.success) {
+                setTimeout(() => {
+                    if (currentRole === "customer")
+                        window.location.href = "user-home.html";
+                    if (currentRole === "vendor")
+                        window.location.href = "vendor-dashboard.html";
+                    if (currentRole === "admin")
+                        window.location.href = "admin-dashboard.html";
+                }, 900);
+            } else {
+                btn.disabled = false;
+                btn.textContent = "Login";
+            }
+        }
+
+
+        // ===== REGISTER MODAL =====
+        function toggleRegisterForm() {
+            document.getElementById("registerModal").classList.add("active");
+
+            const vendorFields = document.getElementById("vendorFields");
+
+            if (currentRole === "vendor") {
+                vendorFields.classList.remove("hidden");
+                document.getElementById("storeName").required = true;
+            } else {
+                vendorFields.classList.add("hidden");
+                document.getElementById("storeName").required = false;
+            }
+        }
+
+        function closeRegisterModal() {
+            document.getElementById("registerModal").classList.remove("active");
+            document.getElementById("registerForm").reset();
+        }
+
+
+        // ===== REGISTER =====
+        function handleRegister(event) {
+            event.preventDefault();
+
+            const form = event.target;
+
+            const result = register(
+                form.email.value,
+                form.password.value,
+                form.confirmPassword.value,
+                currentRole,
+                form.name.value,
+                form.storeName.value || null
+            );
+
+            alert(result.message);
+
+            if (result.success) {
+                closeRegisterModal();
+                document.getElementById("email").value = form.email.value;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(e) {
+            const modal = document.getElementById("registerModal");
+            if (e.target === modal) closeRegisterModal();
+        }
+    </script>
+
+</body>
+</html>

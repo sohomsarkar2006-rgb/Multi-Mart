@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MultiMart - Multi-Vendor E-Commerce Platform</title>
+    <meta name="description" content="MultiMart multi-vendor e-commerce platform">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="landing-container">
+        <div class="landing-content">
+
+            <header class="landing-header">
+                <h1>MultiMart</h1>
+                <p class="tagline">
+                    Multi-Vendor E-Commerce Platform
+                </p>
+                <p class="sub-tagline">
+                    One Platform. Multiple vendors. Endless choices.
+                </p>
+            </header>
+
+            <section class="role-selection" aria-label="Select user role">
+                <h2>Select Your Role to Continue</h2>
+
+                <div class="role-card"
+                     role="button"
+                     tabindex="0"
+                     onclick="navigateToLogin('customer')"
+                     onkeydown="handleKeyNav(event,'customer')">
+
+                    <div class="role-icon">👤</div>
+                    <h3>Customer</h3>
+                    <p>
+                        Browse products, compare vendors, add to cart,
+                        and get simple personalized recommendations.
+                    </p>
+                    <button class="role-btn" type="button">
+                        Continue as Customer
+                    </button>
+                </div>
+
+                <div class="role-card"
+                     role="button"
+                     tabindex="0"
+                     onclick="navigateToLogin('vendor')"
+                     onkeydown="handleKeyNav(event,'vendor')">
+
+                    <div class="role-icon">🏪</div>
+                    <h3>Vendor</h3>
+                    <p>
+                        Add products, manage listings,
+                        track orders, and monitor store performance.
+                    </p>
+                    <button class="role-btn" type="button">
+                        Vendor Dashboard
+                    </button>
+                </div>
+
+                <!-- Admin -->
+                <div class="role-card"
+                     role="button"
+                     tabindex="0"
+                     onclick="navigateToLogin('admin')"
+                     onkeydown="handleKeyNav(event,'admin')">
+
+                    <div class="role-icon">⚙️</div>
+                    <h3>Admin</h3>
+                    <p>
+                        Approve vendors & products,
+                        review complaints, and view platform analytics.
+                    </p>
+                    <button class="role-btn" type="button">
+                        Admin Panel
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- Footer -->
+            <footer class="landing-footer">
+                <p>
+                    © 2026 MultiMart — Multi-Vendor E-Commerce 
+                </p>
+                
+            </footer>
+
+        </div>
+    </div>
+
+    <script>
+        function navigateToLogin(role) {
+            try {
+                sessionStorage.setItem('selectedRole', role);
+                window.location.href = 'pages/login.html';
+            } catch (err) {
+                console.error('Navigation error:', err);
+                alert('Navigation failed. Please try again.');
+            }
+        }
+
+        function handleKeyNav(event, role) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                navigateToLogin(role);
+            }
+        }
+    </script>
+
+</body>
+</html>

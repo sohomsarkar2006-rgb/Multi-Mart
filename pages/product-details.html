@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - ShopHub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+    <div class="navbar-top">
+        <a href="user-home.html" class="navbar-logo">🛒 ShopHub</a>
+
+        <div class="navbar-actions">
+            <a href="user-home.html" class="navbar-link">← Back to Shopping</a>
+            <a href="cart.html" class="navbar-link cart-icon">
+                🛒 Cart
+                <span class="cart-badge">0</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== PRODUCT DETAILS ===== -->
+<div class="container">
+
+    <div id="productDetailsContainer"></div>
+
+    <!-- Similar -->
+    <div class="section similar-section">
+        <div class="section-header">
+            <h2 class="section-title">You May Also Like</h2>
+        </div>
+
+        <div id="similarProducts" class="products-grid"></div>
+    </div>
+
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="../js/main.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/recommend.js"></script>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const productId = urlParams.get('id');
+
+if (!productId) {
+    alert('Product not found');
+    window.location.href = 'user-home.html';
+}
+
+loadProductDetails();
+loadSimilarProducts();
+
+function loadProductDetails() {
+    const product = getProductById(productId);
+
+    if (!product) {
+        alert('Product not found');
+        window.location.href = 'user-home.html';
+        return;
+    }
+
+    const container = document.getElementById('productDetailsContainer');
+
+    container.innerHTML = `
+        <div class="product-detail-grid">
+
+            <div class="product-image-box">
+                <img src="${product.image}" alt="${product.name}">
+            </div>
+
+            <div class="product-info-box">
+
+                <p class="pd-vendor">
+                    Sold by <strong>${product.vendorName}</strong>
+                </p>
+
+                <h1 class="pd-title">${product.name}</h1>
+
+                <div class="pd-rating">
+                    ${getStarRating(product.rating)} (${product.reviews} reviews)
+                </div>
+
+                <div class="pd-price-box">
+                    <div class="pd-price">${formatPrice(product.price)}</div>
+
+                    <div class="pd-stock ${product.stock > 0 ? 'in' : 'out'}">
+                        ${product.stock > 0
+                            ? `In stock (${product.stock})`
+                            : 'Out of stock'}
+                    </div>
+
+                    <div class="pd-category">
+                        Category: ${product.category}
+                    </div>
+                </div>
+
+                <div class="pd-desc">
+                    <h3>Description</h3>
+                    <p>${product.description}</p>
+                </div>
+
+                <div class="pd-actions">
+                    <button class="btn-primary"
+                        onclick="addProductToCart('${product.id}')"
+                        ${product.stock === 0 ? 'disabled' : ''}>
+                        Add to Cart
+                    </button>
+
+                    <button class="btn-secondary"
+                        onclick="buyNow('${product.id}')"
+                        ${product.stock === 0 ? 'disabled' : ''}>
+                        Buy Now
+                    </button>
+                </div>
+
+                <div class="pd-features">
+                    <h4>Why buy here?</h4>
+                    <ul>
+                        <li>Free shipping over $50</li>
+                        <li>30-day return policy</li>
+                        <li>Secure checkout</li>
+                        <li>24/7 support</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+function loadSimilarProducts() {
+    const container = document.getElementById('similarProducts');
+    const products = getSimilarProducts(productId, 4);
+
+    if (products.length === 0) {
+        container.innerHTML = '<p>No similar products found.</p>';
+        return;
+    }
+
+    container.innerHTML = products.map(createProductCard).join('');
+}
+
+addToCart(productId, 1);
+window.location.href = 'checkout.html';
+
+</script>
+
+</body>
+</html>

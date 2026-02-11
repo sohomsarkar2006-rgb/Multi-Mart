@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MarketHub</title>
+    <link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body>
+    <!-- Top Header Bar -->
+    <header class="top-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">MarketHub Admin</span>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div class="search-bar">
+                <input type="text" placeholder="Search vendors, products, orders..." id="globalSearch">
+                <button class="search-btn">🔍</button>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <div class="notification-icon" id="notificationIcon">
+                🔔
+                <span class="badge">5</span>
+            </div>
+            <div class="admin-profile" id="adminProfile">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" alt="Admin">
+                <span>Admin MH</span>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()" style="margin-left: 10px; padding: 8px 16px; background: #fee2e2; color: #991b1b; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="#vendors" class="nav-item" data-section="vendors">
+                <span class="nav-icon">🏪</span>
+                <span class="nav-text">Vendor Management</span>
+            </a>
+            <a href="#products" class="nav-item" data-section="products">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">Product Approval</span>
+            </a>
+            <a href="#orders" class="nav-item" data-section="orders">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-text">Orders & Refunds</span>
+            </a>
+            <a href="#payments" class="nav-item" data-section="payments">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">Payments & Commission</span>
+            </a>
+            <a href="#users" class="nav-item" data-section="users">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">User Management</span>
+            </a>
+            <a href="#analytics" class="nav-item" data-section="analytics">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Analytics</span>
+            </a>
+            <a href="#complaints" class="nav-item" data-section="complaints">
+                <span class="nav-icon">⚠️</span>
+                <span class="nav-text">Complaints & Disputes</span>
+            </a>
+            <a href="#settings" class="nav-item" data-section="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Platform Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+        
+        <!-- Dashboard Section -->
+        <section class="content-section active" id="dashboard">
+            <div class="page-header">
+                <h1>Dashboard Overview</h1>
+                <div class="date-filter">
+                    <select>
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                        <option>Last 90 Days</option>
+                        <option>All Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">💰</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Revenue</p>
+                        <h2 class="stat-value">₹124,580</h2>
+                        <span class="stat-change positive">+12.5%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">📦</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Orders</p>
+                        <h2 class="stat-value">1,845</h2>
+                        <span class="stat-change positive">+8.2%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">🏪</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Active Vendors</p>
+                        <h2 class="stat-value">156</h2>
+                        <span class="stat-change positive">+5</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">👥</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Users</p>
+                        <h2 class="stat-value">8,942</h2>
+                        <span class="stat-change positive">+15.3%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Revenue Overview</h3>
+                        <select>
+                            <option>Monthly</option>
+                            <option>Weekly</option>
+                            <option>Daily</option>
+                        </select>
+                    </div>
+                    <div class="chart-placeholder" id="revenueChart">
+                        <canvas id="revenueCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Order Status Distribution</h3>
+                    </div>
+                    <div class="chart-placeholder" id="orderChart">
+                        <canvas id="orderCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-card">
+                <h3>Recent Activity</h3>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <span class="activity-icon">✅</span>
+                        <div class="activity-details">
+                            <p><strong>New vendor approved:</strong> TechStore Plus</p>
+                            <span class="activity-time">2 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-icon">📦</span>
+                        <div class="activity-details">
+                            <p><strong>Product approved:</strong> Wireless Headphones by AudioTech</p>
+                            <span class="activity-time">15 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-icon">💰</span>
+                        <div class="activity-details">
+                            <p><strong>Payment processed:</strong> ₹1,250.00 to Vendor #145</p>
+                            <span class="activity-time">1 hour ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-icon">⚠️</span>
+                        <div class="activity-details">
+                            <p><strong>New dispute filed:</strong> Order #12458</p>
+                            <span class="activity-time">3 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vendor Management Section -->
+        <section class="content-section" id="vendors">
+            <div class="page-header">
+                <h1>Vendor Management</h1>
+                <button class="btn-primary">+ Add Vendor</button>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="vendorStatusFilter">
+                        <option value="all">All</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="banned">Banned</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="text" placeholder="Search vendors..." id="vendorSearch">
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table id="vendorsTable">
+                    <thead>
+                        <tr>
+                            <th>Vendor ID</th>
+                            <th>Store Name</th>
+                            <th>Owner Name</th>
+                            <th>Email</th>
+                            <th>Products</th>
+                            <th>Revenue</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vendorsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button class="page-btn">Previous</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">Next</button>
+            </div>
+        </section>
+
+        <!-- Product Approval Section -->
+        <section class="content-section" id="products">
+            <div class="page-header">
+                <h1>Product Approval Panel</h1>
+                <div class="header-actions">
+                    <span class="pending-count">12 Pending Approvals</span>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="productStatusFilter">
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Category:</label>
+                    <select>
+                        <option>All Categories</option>
+                        <option>Electronics</option>
+                        <option>Fashion</option>
+                        <option>Home & Garden</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Image</th>
+                            <th>Product Name</th>
+                            <th>Vendor</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Orders & Refunds Section -->
+        <section class="content-section" id="orders">
+            <div class="page-header">
+                <h1>Orders & Refunds Management</h1>
+                <button class="btn-secondary">Export Orders</button>
+            </div>
+
+            <div class="stats-grid-small">
+                <div class="mini-stat">
+                    <p>Total Orders</p>
+                    <h3>1,845</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Pending</p>
+                    <h3>124</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Processing</p>
+                    <h3>56</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Refund Requests</p>
+                    <h3>8</h3>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select>
+                        <option>All Orders</option>
+                        <option>Pending</option>
+                        <option>Processing</option>
+                        <option>Shipped</option>
+                        <option>Delivered</option>
+                        <option>Refund Requested</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="date">
+                    <span>to</span>
+                    <input type="date">
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Vendor</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Payments & Commission Section -->
+        <section class="content-section" id="payments">
+            <div class="page-header">
+                <h1>Payments & Commission Settings</h1>
+            </div>
+
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3>Commission Structure</h3>
+                    <div class="setting-item">
+                        <label>Default Commission Rate (%)</label>
+                        <input type="number" value="15" min="0" max="100">
+                    </div>
+                    <div class="setting-item">
+                        <label>Electronics Category (%)</label>
+                        <input type="number" value="12" min="0" max="100">
+                    </div>
+                    <div class="setting-item">
+                        <label>Fashion Category (%)</label>
+                        <input type="number" value="18" min="0" max="100">
+                    </div>
+                    <button class="btn-primary">Update Commission Rates</button>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Payment Schedule</h3>
+                    <div class="setting-item">
+                        <label>Payout Frequency</label>
+                        <select>
+                            <option>Weekly</option>
+                            <option>Bi-weekly</option>
+                            <option selected>Monthly</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Minimum Payout Amount (₹)</label>
+                        <input type="number" value="100">
+                    </div>
+                    <button class="btn-primary">Update Payment Settings</button>
+                </div>
+            </div>
+
+            <div class="payment-stats">
+                <h3>Payment Overview</h3>
+                <div class="stats-grid-small">
+                    <div class="mini-stat">
+                        <p>Total Payouts (This Month)</p>
+                        <h3>₹45,280</h3>
+                    </div>
+                    <div class="mini-stat">
+                        <p>Pending Payouts</p>
+                        <h3>₹12,450</h3>
+                    </div>
+                    <div class="mini-stat">
+                        <p>Commission Earned</p>
+                        <h3>₹18,870</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3>Recent Payouts</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payout ID</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>Commission</th>
+                            <th>Net Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payoutsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- User Management Section -->
+        <section class="content-section" id="users">
+            <div class="page-header">
+                <h1>User Management</h1>
+                <button class="btn-primary">+ Add User</button>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>User Type:</label>
+                    <select>
+                        <option>All Users</option>
+                        <option>Customers</option>
+                        <option>Vendors</option>
+                        <option>Admins</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select>
+                        <option>All</option>
+                        <option>Active</option>
+                        <option>Inactive</option>
+                        <option>Banned</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="text" placeholder="Search users...">
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>User Type</th>
+                            <th>Join Date</th>
+                            <th>Orders</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section class="content-section" id="analytics">
+            <div class="page-header">
+                <h1>Analytics Dashboard</h1>
+                <div class="date-range-picker">
+                    <input type="date" value="2026-01-01">
+                    <span>to</span>
+                    <input type="date" value="2026-02-09">
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">💵</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Gross Revenue</p>
+                        <h2 class="stat-value">₹156,780</h2>
+                        <span class="stat-change positive">+22.5%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">📈</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Net Profit</p>
+                        <h2 class="stat-value">₹42,340</h2>
+                        <span class="stat-change positive">+18.2%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">🛍️</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Conversion Rate</p>
+                        <h2 class="stat-value">3.8%</h2>
+                        <span class="stat-change positive">+0.5%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⭐</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Avg. Order Value</p>
+                        <h2 class="stat-value">₹67.50</h2>
+                        <span class="stat-change negative">-2.1%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid-large">
+                <div class="chart-card large">
+                    <div class="card-header">
+                        <h3>Sales Trends</h3>
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="salesTrendCanvas"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Top Categories</h3>
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="categoryCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Traffic Sources</h3>
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="trafficCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complaints & Disputes Section -->
+        <section class="content-section" id="complaints">
+            <div class="page-header">
+                <h1>Complaint & Dispute Center</h1>
+                <span class="alert-badge">15 Open Cases</span>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select>
+                        <option>Open</option>
+                        <option>In Progress</option>
+                        <option>Resolved</option>
+                        <option>All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Priority:</label>
+                    <select>
+                        <option>All</option>
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table id="complaintsTable">
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Type</th>
+                            <th>Customer</th>
+                            <th>Vendor</th>
+                            <th>Order ID</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Platform Settings Section -->
+        <section class="content-section" id="settings">
+            <div class="page-header">
+                <h1>Platform Settings</h1>
+            </div>
+
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="general">General</button>
+                <button class="tab-btn" data-tab="email">Email</button>
+                <button class="tab-btn" data-tab="security">Security</button>
+                <button class="tab-btn" data-tab="integrations">Integrations</button>
+            </div>
+
+            <div class="tab-content active" id="general">
+                <div class="settings-card">
+                    <h3>General Settings</h3>
+                    <div class="setting-item">
+                        <label>Platform Name</label>
+                        <input type="text" value="MarketHub">
+                    </div>
+                    <div class="setting-item">
+                        <label>Support Email</label>
+                        <input type="email" value="support@markethub.com">
+                    </div>
+                    <div class="setting-item">
+                        <label>Currency</label>
+                        <select>
+                            <option>USD (₹)</option>
+                            <option>EUR (€)</option>
+                            <option>GBP (£)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Time Zone</label>
+                        <select>
+                            <option>UTC</option>
+                            <option>EST</option>
+                            <option>PST</option>
+                        </select>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <input type="checkbox" id="maintenanceMode">
+                        <label for="maintenanceMode">Enable Maintenance Mode</label>
+                    </div>
+                    <button class="btn-primary">Save Changes</button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="email">
+                <div class="settings-card">
+                    <h3>Email Configuration</h3>
+                    <div class="setting-item">
+                        <label>SMTP Host</label>
+                        <input type="text" placeholder="smtp.example.com">
+                    </div>
+                    <div class="setting-item">
+                        <label>SMTP Port</label>
+                        <input type="number" value="587">
+                    </div>
+                    <div class="setting-item checkbox">
+                        <input type="checkbox" id="emailNotifications">
+                        <label for="emailNotifications">Enable Email Notifications</label>
+                    </div>
+                    <button class="btn-primary">Save Email Settings</button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="security">
+                <div class="settings-card">
+                    <h3>Security Settings</h3>
+                    <div class="setting-item checkbox">
+                        <input type="checkbox" id="twoFactor" checked>
+                        <label for="twoFactor">Enable Two-Factor Authentication</label>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <input type="checkbox" id="loginNotify" checked>
+                        <label for="loginNotify">Send Login Notifications</label>
+                    </div>
+                    <div class="setting-item">
+                        <label>Session Timeout (minutes)</label>
+                        <input type="number" value="30">
+                    </div>
+                    <button class="btn-primary">Update Security</button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="integrations">
+                <div class="settings-card">
+                    <h3>Third-Party Integrations</h3>
+                    <div class="integration-item">
+                        <div class="integration-info">
+                            <h4>Payment Gateway</h4>
+                            <p>Stripe Integration</p>
+                        </div>
+                        <button class="btn-secondary">Configure</button>
+                    </div>
+                    <div class="integration-item">
+                        <div class="integration-info">
+                            <h4>Shipping Provider</h4>
+                            <p>FedEx API</p>
+                        </div>
+                        <button class="btn-secondary">Configure</button>
+                    </div>
+                    <div class="integration-item">
+                        <div class="integration-info">
+                            <h4>Analytics</h4>
+                            <p>Google Analytics</p>
+                        </div>
+                        <button class="btn-secondary">Configure</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Approval/Rejection -->
+    <div class="modal" id="approvalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Review Product</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn-danger" id="modalReject">Reject</button>
+                <button class="btn-primary" id="modalApprove">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="mark-read">Mark all as read</button>
+        </div>
+        <div class="notification-list">
+            <div class="notification-item unread">
+                <div class="notification-icon">🔔</div>
+                <div class="notification-content">
+                    <p><strong>New vendor registration</strong></p>
+                    <span>TechStore Plus has registered</span>
+                    <span class="time">5 min ago</span>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-icon">📦</div>
+                <div class="notification-content">
+                    <p><strong>Product pending approval</strong></p>
+                    <span>Wireless Headphones needs review</span>
+                    <span class="time">15 min ago</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon">💰</div>
+                <div class="notification-content">
+                    <p><strong>Payment processed</strong></p>
+                    <span>₹1,250 paid to Vendor #145</span>
+                    <span class="time">1 hour ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopHub - Home</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+    <div class="navbar-top">
+
+        <a href="user-home.html" class="navbar-logo">🛒 ShopHub</a>
+
+        <!-- Search -->
+        <div class="search-bar">
+            <input type="text" id="searchInput"
+                   placeholder="Search products..."
+                   onkeyup="handleSearch(event)">
+            <button onclick="performSearch()">Search</button>
+        </div>
+
+        <!-- Actions -->
+        <div class="navbar-actions">
+            <span class="navbar-link" id="userGreeting">Hello, Guest</span>
+
+            <a href="cart.html" class="navbar-link cart-icon">
+                🛒 Cart
+                <span class="cart-badge">0</span>
+            </a>
+
+            <a href="#" onclick="handleUserLogout()" class="navbar-link logout-link">
+                Logout
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+    <!-- Search Results -->
+    <div id="searchResults" class="section hidden">
+        <div class="section-header">
+            <h2 class="section-title">Search Results</h2>
+            <a href="#" class="section-link" onclick="clearSearch(); return false;">
+                Clear
+            </a>
+        </div>
+
+        <div id="searchResultsGrid" class="products-grid"></div>
+    </div>
+
+    <!-- Recommended -->
+    <div class="section">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Recommended for You</h2>
+                <p class="section-sub">
+                    Based on your browsing activity
+                </p>
+            </div>
+        </div>
+
+        <div id="recommendedProducts" class="products-grid"></div>
+    </div>
+
+    <!-- Popular -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Popular Products</h2>
+        </div>
+
+        <div id="popularProducts" class="products-grid"></div>
+    </div>
+
+    <!-- All -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">All Products</h2>
+
+            <select class="category-filter"
+                    onchange="filterByCategory(this.value)">
+                <option value="">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Accessories">Accessories</option>
+            </select>
+        </div>
+
+        <div id="allProducts" class="products-grid"></div>
+    </div>
+
+</div>
+
+<!-- ===== JS ===== -->
+<script src="../js/main.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/recommend.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // ✅ ensure products exist in storage
+    if (typeof seedProductsIfEmpty === "function") {
+        seedProductsIfEmpty();
+    }
+
+    // ✅ greeting
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser.role === 'customer') {
+        document.getElementById('userGreeting').textContent =
+            `Hello, ${currentUser.name}`;
+    }
+
+    // ✅ initial renders (safe)
+    renderRecommendedProductsSafe();
+    loadPopularProductsSafe();
+    loadAllProductsSafe();
+});
+
+
+// =======================
+// SAFE LOADERS
+// =======================
+
+function loadAllProductsSafe() {
+    const container = document.getElementById('allProducts');
+    if (!container) return;
+
+    const products = getAllProducts() || [];
+
+    container.innerHTML = products.length
+        ? products.map(createProductCard).join('')
+        : `<div class="empty-state">No products available</div>`;
+}
+
+function loadPopularProductsSafe() {
+    const container = document.getElementById('popularProducts');
+    if (!container) return;
+
+    const products = getPopularProducts(8) || [];
+
+    container.innerHTML = products.length
+        ? products.map(createProductCard).join('')
+        : `<div class="empty-state">No popular products yet</div>`;
+}
+
+function renderRecommendedProductsSafe() {
+    const container = document.getElementById('recommendedProducts');
+    if (!container) return;
+
+    let products = getRecommendedProducts(8) || [];
+
+    // fallback if recommender cold start
+    if (!products.length) {
+        products = getPopularProducts(8);
+    }
+
+    container.innerHTML = products.length
+        ? products.map(createProductCard).join('')
+        : `<div class="empty-state">Browse products to get recommendations</div>`;
+}
+
+
+// =======================
+// SEARCH
+// =======================
+
+function handleSearch(event) {
+    if (event.key === 'Enter') performSearch();
+}
+
+function performSearch() {
+
+    const input = document.getElementById('searchInput');
+    const query = input.value.trim();
+
+    if (!query) return clearSearch();
+
+    const results = searchProducts(query);
+    const section = document.getElementById('searchResults');
+    const grid = document.getElementById('searchResultsGrid');
+
+    section.classList.remove('hidden');
+
+    grid.innerHTML = results.length
+        ? results.map(createProductCard).join('')
+        : `<div class="empty-state">
+             No products found for "${query}"
+           </div>`;
+
+    section.scrollIntoView({ behavior: 'smooth' });
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').classList.add('hidden');
+}
+
+
+// =======================
+// FILTER
+// =======================
+
+function filterByCategory(category) {
+
+    if (!category) {
+        loadAllProductsSafe();
+        return;
+    }
+
+    const list = getProductsByCategory(category) || [];
+
+    document.getElementById('allProducts').innerHTML =
+        list.map(createProductCard).join('');
+}
+
+
+// =======================
+// LOGOUT
+// =======================
+
+function handleUserLogout() {
+    if (confirm('Logout?')) {
+        logout();
+        window.location.href = '../index.html';
+    }
+}
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - ShopHub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">🛒 ShopHub</div>
+        <div class="sidebar-role">Vendor Panel</div>
+    </div>
+
+    <ul class="sidebar-menu">
+
+        <li class="sidebar-item">
+            <a href="#" class="sidebar-link active"
+               onclick="showSection(event,'overview')">
+                📊 Overview
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="#" class="sidebar-link"
+               onclick="showSection(event,'products')">
+                📦 My Products
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="#" class="sidebar-link"
+               onclick="showSection(event,'orders')">
+                🛍️ Orders
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="../index.html" class="sidebar-link">
+                🏠 Back to Home
+            </a>
+        </li>
+
+    </ul>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="dashboard-main">
+
+<header class="dashboard-header">
+    <h1 class="dashboard-title">Vendor Dashboard</h1>
+
+    <div class="user-info">
+        <div class="user-avatar">🏪</div>
+        <div class="user-details">
+            <h4 class="user-name">Vendor</h4>
+            <p class="store-name">My Store</p>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+</header>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview" class="vendor-section active-section">
+
+    <h2 class="section-heading">Overview</h2>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span>Total Products</span>
+                <span>📦</span>
+            </div>
+            <div class="stat-value" id="totalProducts">0</div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-header">
+                <span>Total Orders</span>
+                <span>🛍️</span>
+            </div>
+            <div class="stat-value" id="totalOrders">0</div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-header">
+                <span>Total Revenue</span>
+                <span>💰</span>
+            </div>
+            <div class="stat-value" id="totalRevenue">$0.00</div>
+        </div>
+
+        <div class="stat-card danger">
+            <div class="stat-header">
+                <span>Pending Orders</span>
+                <span>⏳</span>
+            </div>
+            <div class="stat-value" id="pendingOrders">0</div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ===== PRODUCTS ===== -->
+<section id="products" class="vendor-section">
+
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title">My Products</h2>
+
+            <button class="btn-add" onclick="showAddProductForm()">
+                ➕ Add Product
+            </button>
+        </div>
+
+        <div id="productsTable"></div>
+    </div>
+
+</section>
+
+<!-- ===== ORDERS ===== -->
+<section id="orders" class="vendor-section">
+
+    <div class="dashboard-section">
+        <h2 class="section-title">My Orders</h2>
+        <div id="ordersTable"></div>
+    </div>
+
+</section>
+
+</main>
+</div>
+
+<!-- ===== PRODUCT MODAL ===== -->
+<div id="productModal" class="modal">
+
+<div class="modal-content">
+
+<div class="modal-header">
+    <h2 id="modalTitle">Add New Product</h2>
+    <button class="modal-close" onclick="closeProductModal()">×</button>
+</div>
+
+<div class="modal-body">
+
+<form id="productForm" onsubmit="submitProductForm(event)">
+
+<div class="form-group">
+<label>Product Name *</label>
+<input type="text" name="productName" required>
+</div>
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Price *</label>
+<input type="number" name="productPrice" step="0.01" required>
+</div>
+
+<div class="form-group">
+<label>Stock *</label>
+<input type="number" name="productStock" required>
+</div>
+
+</div>
+
+<div class="form-group">
+<label>Category *</label>
+<select name="productCategory" required>
+<option value="">Select category</option>
+<option>Electronics</option>
+<option>Fashion</option>
+<option>Accessories</option>
+<option>Home & Garden</option>
+<option>Sports</option>
+<option>Books</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Description</label>
+<textarea name="productDescription"></textarea>
+</div>
+
+<div class="form-group">
+<label>Image URL</label>
+<input type="url" name="productImage">
+</div>
+
+<div class="form-actions">
+<button class="btn-submit">Save Product</button>
+<button type="button" class="btn-cancel" onclick="closeProductModal()">Cancel</button>
+</div>
+
+</form>
+</div>
+</div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="../js/main.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../js/vendor.js"></script>
+
+<script>
+function showSection(e, name) {
+    e.preventDefault();
+
+    document.querySelectorAll('.vendor-section')
+        .forEach(s => s.classList.remove('active-section'));
+
+    document.getElementById(name)
+        .classList.add('active-section');
+
+    document.querySelectorAll('.sidebar-link')
+        .forEach(l => l.classList.remove('active'));
+
+    e.currentTarget.classList.add('active');
+}
+</script>
+
+</body>
+</html>
