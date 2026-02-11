@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-    <!-- ===== NAVIGATION BAR ===== -->
+    <!-- NAVIGATION BAR -->
     <nav class="navbar">
         <div class="navbar-top">
             <a href="user-home.html" class="navbar-logo">🛒 ShopHub</a>
         </div>
     </nav>
 
-    <!-- ===== CHECKOUT CONTENT ===== -->
+    <!-- CHECKOUT CONTENT -->
     <div class="container">
         <h1 class="page-title">Checkout</h1>
         
@@ -101,7 +101,7 @@
 
 
     <script>
-        // ===== PAGE INITIALIZATION =====
+        // PAGE INITIALIZATION
         // Check if user is logged in
         if (!isLoggedIn()) {
             alert('Please login to proceed with checkout');
@@ -114,7 +114,7 @@
             document.getElementById('fullName').value = user.name;
         }
 
-        // ===== RENDER ORDER SUMMARY =====
+        // RENDER ORDER SUMMARY 
         function renderOrderSummary() {
             const container = document.getElementById('orderSummary');
             const cart = getCart();
@@ -165,7 +165,7 @@
         
         renderOrderSummary();
 
-        // ===== HANDLE CHECKOUT =====
+        // HANDLE CHECKOUT
         // This function processes the order
         // TODO: In production, send this data to backend API
         function handleCheckout(event) {
