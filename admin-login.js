@@ -1,9 +1,6 @@
-// ===============================
-// ADMIN LOGIN AUTHENTICATION
-// Plain JavaScript — no framework
-// ===============================
+//admin login authentication
 
-// NOTE: Demo credentials only — should be server-side in real deployment
+// demo credentials for secure admin only access
 const ADMIN_CREDENTIALS = {
     email: 'adminmh@gmail.com',
     password: '12345678'
@@ -19,14 +16,13 @@ let errorAlert, errorMessage;
 let loginBtn, loginBtnText, loginSpinner;
 let togglePasswordBtn;
 
-// -------------------------------
-// Init
-// -------------------------------
+//beginning
 
 document.addEventListener('DOMContentLoaded', initLogin);
 
 function initLogin() {
     // Cache elements
+
     loginForm = document.getElementById('adminLoginForm');
     emailInput = document.getElementById('adminEmail');
     passwordInput = document.getElementById('adminPassword');
@@ -37,13 +33,13 @@ function initLogin() {
     loginSpinner = document.getElementById('loginSpinner');
     togglePasswordBtn = document.getElementById('togglePassword');
 
-    // Guard — page mismatch safety
+    // Guard : page mismatch safety
     if (!loginForm || !emailInput || !passwordInput) {
         console.warn('Login page elements missing');
         return;
     }
 
-    // Already logged in → skip login
+    // Already logged in then skip login
     if (isAdminLoggedIn()) {
         window.location.href = 'admin-dashboard.html';
         return;
@@ -59,13 +55,20 @@ function initLogin() {
     emailInput.addEventListener('input', clearError);
     passwordInput.addEventListener('input', clearError);
 
-    // Autofocus — small human UX touch
+    // Autofocus 
     emailInput.focus();
 }
 
-// -------------------------------
+
+
+
+
+
 // Login Flow
-// -------------------------------
+
+
+
+
 
 function handleLogin(e) {
     e.preventDefault();
@@ -85,7 +88,7 @@ function handleLogin(e) {
 
     setLoading(true);
 
-    // Fake network delay — feels real
+    // network delay (in case lag to load)
     const delay = 600 + Math.random() * 500;
 
     setTimeout(() => {
@@ -107,6 +110,7 @@ function authenticateAdmin(email, password) {
     }
 
     // Save session
+
     localStorage.setItem(ADMIN_SESSION_KEY, 'true');
     localStorage.setItem(ADMIN_EMAIL_KEY, email);
 
@@ -121,9 +125,9 @@ function authenticateAdmin(email, password) {
     }, 900);
 }
 
-// -------------------------------
+
 // Helpers
-// -------------------------------
+
 
 function isAdminLoggedIn() {
     return localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
@@ -167,15 +171,12 @@ function showSuccess() {
     loginBtnText.textContent = '✓ Success';
     loginBtnText.style.display = 'inline';
     loginSpinner.style.display = 'none';
-
-    // softer green — more realistic than neon
     loginBtn.style.background =
         'linear-gradient(135deg,#16a34a,#15803d)';
 }
 
-// -------------------------------
+
 // UX Utilities
-// -------------------------------
 
 function togglePasswordVisibility() {
     if (!passwordInput) return;
@@ -188,13 +189,15 @@ function togglePasswordVisibility() {
     }
 }
 
+
+//validating mail by regex
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// -------------------------------
+
 // Logout (used by dashboard)
-// -------------------------------
+
 
 function logoutAdmin() {
     localStorage.removeItem(ADMIN_SESSION_KEY);

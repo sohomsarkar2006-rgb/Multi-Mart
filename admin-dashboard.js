@@ -1,7 +1,7 @@
-// ===============================
-// ADMIN DASHBOARD JAVASCRIPT
-// Pure JavaScript - No Framework Dependencies
-// ===============================
+
+// admin dashboard
+//till javascript(basic) bhaskar
+
 
 // Session storage key
 const ADMIN_SESSION_KEY = 'adminLoggedIn';
@@ -25,7 +25,7 @@ function isAdminAuthenticated() {
 function displayAdminInfo() {
     const adminEmail = localStorage.getItem(ADMIN_EMAIL_KEY);
     if (adminEmail) {
-        // Update admin profile display
+        // Updates admin profile display
         const adminProfile = document.getElementById('adminProfile');
         if (adminProfile) {
             const nameSpan = adminProfile.querySelector('span:first-of-type');
@@ -45,7 +45,7 @@ function handleLogout() {
     }
 }
 
-// Sample Data
+// Sample Data for showing(from internet)
 const vendorsData = [
     { id: 'VND001', storeName: 'TechWorld', ownerName: 'John Smith', email: 'john@techworld.com', products: 45, revenue: 12580.50, status: 'approved' },
     { id: 'VND002', storeName: 'GadgetHub', ownerName: 'Sarah Johnson', email: 'sarah@gadgethub.com', products: 32, revenue: 9845.25, status: 'approved' },
