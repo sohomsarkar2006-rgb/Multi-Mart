@@ -67,15 +67,25 @@ function closeProductModal() {
 
 function addProduct(productData) {
     const user = getCurrentUser();
-    if (!user) return { success: false, message: 'User not found' };
-    const products = window.mockVendorProducts ||= [];
+    if (!user) return { success:false, message:'User not found' };
+
+    const products = getAllProducts();   // our DB in main.js
+
     productData.id = 'p' + Date.now();
+    productData.vendorId = user.id;
+    productData.vendorName = user.name;
+    productData.rating = 0;
+    productData.reviews = 0;
+    productData.createdAt = new Date().toISOString();
+
     products.push(productData);
-    if (typeof window.getProductsByVendor !== 'function') {
-        window.getProductsByVendor = id => products.filter(p => p.vendorId === id || true);
-    }
-    return { success: true, message: 'Product added successfully' };
+
+    saveProductsToStorage(products);     // saving there
+
+    return { success:true, message:'Product added successfully' };
 }
+
+
 
 function submitProductForm(event) {
     event.preventDefault();
@@ -89,14 +99,17 @@ function submitProductForm(event) {
         image: form.productImage.value.trim(),
         stock: Number(form.productStock.value)
     };
-    if (!productData.name || !productData.price) return showToast('Name and price required','error');
+    if (!productData.name || !productData.price) return showToastSafe
+('Name and price required','error');
     const result = editId ? updateProduct(editId, productData) : addProduct(productData);
     if (result.success) {
-        showToast(result.message,'success');
+        showToastSafe
+(result.message,'success');
         closeProductModal();
         loadVendorProducts();
         loadVendorStats();
-    } else showToast(result.message,'error');
+    } else showToastSafe
+(result.message,'error');
 }
 
 function editProduct(productId) {
@@ -121,7 +134,8 @@ function deleteProductConfirm(productId) {
     if (!product) return;
     if (!confirm(`Delete "${product.name}"?`)) return;
     const result = deleteProduct(productId);
-    showToast(result.message, result.success?'success':'error');
+    showToastSafe
+(result.message, result.success?'success':'error');
     if (result.success) {
         loadVendorProducts();
         loadVendorStats();

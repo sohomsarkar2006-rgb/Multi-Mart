@@ -197,3 +197,8 @@ function addProductToCart(productId) {
     const r = addToCart(productId, 1);
     alert(r.message);
 }
+function proceedToCheckout() {
+    alert("Checkout clicked");
+    window.location.href = "checkout.html";
+}
+

@@ -54,6 +54,11 @@ function getAllProducts() {
     return JSON.parse(localStorage.getItem(PRODUCTS_KEY)) || [];
 }
 
+function saveProductsToStorage(products) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+}
+
+
 function getProductById(id) {
     return getAllProducts().find(p => p.id === id);
 }

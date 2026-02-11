@@ -261,27 +261,28 @@ function renderVendorsTable() {
 function renderProductsTable() {
     const tbody = document.getElementById('productsTableBody');
     if (!tbody) return;
-    
-    tbody.innerHTML = productsData.map(product => `
+
+    const products = getAllProducts();   // main js database
+
+    tbody.innerHTML = products.map(product => `
         <tr>
             <td>${product.id}</td>
-            <td><img src="${product.image}" alt="${product.name}" class="product-img"></td>
+            <td><img src="${product.image}" class="product-img"></td>
             <td><strong>${product.name}</strong></td>
-            <td>${product.vendor}</td>
+            <td>${product.vendorName || '-'}</td>
             <td>${product.category}</td>
-            <td>$${product.price.toFixed(2)}</td>
-            <td><span class="badge ${product.status}">${product.status}</span></td>
+            <td>${formatPrice(product.price)}</td>
+            <td><span class="badge approved">approved</span></td>
             <td>
-                <button class="action-btn view" onclick="viewProduct('${product.id}')">View</button>
-                ${product.status === 'pending' ? `
-                    <button class="action-btn edit" onclick="approveProduct('${product.id}')">Approve</button>
-                    <button class="action-btn delete" onclick="rejectProduct('${product.id}')">Reject</button>
-                ` : ''}
-                ${product.status === 'approved' ? `<button class="action-btn delete" onclick="deleteProduct('${product.id}')">Delete</button>` : ''}
+                <button class="action-btn view"
+                    onclick="viewProduct('${product.id}')">View</button>
+                <button class="action-btn delete"
+                    onclick="deleteProduct('${product.id}')">Delete</button>
             </td>
         </tr>
     `).join('');
 }
+
 
 function renderOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
