@@ -92,9 +92,9 @@ const payoutsData = [
     { id: 'PAY003', vendor: 'SportZone', amount: 7650.00, commission: 1147.50, netAmount: 6502.50, date: '2026-02-01', status: 'pending' },
 ];
 
-// ===============================
+
 // Navigation & Menu Handling
-// ===============================
+
 
 function initializeApp() {
     setupNavigation();
@@ -161,9 +161,7 @@ function setupNotifications() {
     }
 }
 
-// ===============================
 // Modal Handling
-// ===============================
 
 function setupModals() {
     const modal = document.getElementById('approvalModal');
@@ -207,9 +205,9 @@ function closeModal() {
     }
 }
 
-// ===============================
+
 // Tabs Handling
-// ===============================
+
 
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -376,9 +374,9 @@ function renderPayoutsTable() {
     `).join('');
 }
 
-// ===============================
+
 // Action Functions
-// ===============================
+
 
 function viewVendor(id) {
     const vendor = vendorsData.find(v => v.id === id);
