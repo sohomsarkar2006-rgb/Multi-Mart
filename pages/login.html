@@ -115,13 +115,13 @@
     </div>
 
 
-    <!-- ===== SCRIPTS ===== -->
+    <!-- scripts -->
 
     <script src="../js/main.js"></script>
     <script src="../js/auth.js"></script>
 
     <script>
-        // ===== ROLE SETUP =====
+        // role setup
         let currentRole = sessionStorage.getItem('selectedRole') || 'customer';
 
         const roleBadge = document.getElementById('roleBadge');
@@ -135,7 +135,7 @@
         roleBadge.textContent = roleNames[currentRole] + " Login";
 
 
-        // ===== LOGIN =====
+        // login
         function handleLogin(event) {
             event.preventDefault();
 
@@ -173,7 +173,7 @@
         }
 
 
-        // ===== REGISTER MODAL =====
+        // register modal
         function toggleRegisterForm() {
             document.getElementById("registerModal").classList.add("active");
 

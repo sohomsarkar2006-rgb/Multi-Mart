@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
+<!-- nav bar -->
 <nav class="navbar">
     <div class="navbar-top">
 
@@ -39,7 +39,7 @@
     </div>
 </nav>
 
-<!-- ===== MAIN CONTENT ===== -->
+<!--main content -->
 <div class="container">
 
     <!-- Search Results -->
@@ -96,7 +96,7 @@
 
 </div>
 
-<!-- ===== JS ===== -->
+<!-- linking js -->
 <script src="../js/main.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/cart.js"></script>
@@ -105,28 +105,26 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // ✅ ensure products exist in storage
+    // ensure prod if exists
     if (typeof seedProductsIfEmpty === "function") {
         seedProductsIfEmpty();
     }
 
-    // ✅ greeting
+    // greeting
     const currentUser = getCurrentUser();
     if (currentUser && currentUser.role === 'customer') {
         document.getElementById('userGreeting').textContent =
             `Hello, ${currentUser.name}`;
     }
 
-    // ✅ initial renders (safe)
+    // initial rendering
     renderRecommendedProductsSafe();
     loadPopularProductsSafe();
     loadAllProductsSafe();
 });
 
 
-// =======================
-// SAFE LOADERS
-// =======================
+//loads product
 
 function loadAllProductsSafe() {
     const container = document.getElementById('allProducts');
@@ -167,9 +165,7 @@ function renderRecommendedProductsSafe() {
 }
 
 
-// =======================
-// SEARCH
-// =======================
+//search
 
 function handleSearch(event) {
     if (event.key === 'Enter') performSearch();
@@ -203,9 +199,7 @@ function clearSearch() {
 }
 
 
-// =======================
-// FILTER
-// =======================
+//filter
 
 function filterByCategory(category) {
 
@@ -221,9 +215,7 @@ function filterByCategory(category) {
 }
 
 
-// =======================
-// LOGOUT
-// =======================
+//logout
 
 function handleUserLogout() {
     if (confirm('Logout?')) {

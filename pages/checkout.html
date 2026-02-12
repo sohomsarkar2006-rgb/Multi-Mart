@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-    <!-- NAVIGATION BAR -->
+    <!-- Navigation bar -->
     <nav class="navbar">
         <div class="navbar-top">
             <a href="user-home.html" class="navbar-logo">🛒 MultiMart</a>
         </div>
     </nav>
 
-    <!-- CHECKOUT CONTENT -->
+    <!-- Checkout content-->
     <div class="container">
         <h1 class="page-title">Checkout</h1>
         
@@ -102,7 +102,7 @@
 
 
     <script>
-        // PAGE INITIALIZATION
+        // Page initiolization
         // Check if user is logged in
         if (!isLoggedIn()) {
             alert('Please login to proceed with checkout');
@@ -115,7 +115,7 @@
             document.getElementById('fullName').value = user.name;
         }
 
-        // RENDER ORDER SUMMARY 
+        // Render order summary
         function renderOrderSummary() {
             const container = document.getElementById('orderSummary');
             const cart = getCart();
@@ -166,9 +166,9 @@
         
         renderOrderSummary();
 
-        // HANDLE CHECKOUT
-        // This function processes the order
-        // TODO: In production, send this data to backend API
+        // handle checkout
+        // processes the order
+        //send the data to backend
         function handleCheckout(event) {
             event.preventDefault();
             
