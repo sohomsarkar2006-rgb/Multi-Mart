@@ -1,9 +1,5 @@
-/* ===== DASHBOARD STYLES ===== */
-/* This file contains styles for vendor and admin dashboards */
-/* Students can customize the dashboard layout and colors here */
+/*dashboard styles*/
 
-/* ===== SAFE VARIABLE FALLBACKS (Enhancement Layer) ===== */
-/* Prevents UI break if some CSS variables are missing */
 
 :root {
     --primary-color: var(--primary-color, #ff9900);
@@ -22,7 +18,7 @@
     --shadow-sm: var(--shadow-sm, 0 2px 6px rgba(0,0,0,0.08));
 }
 
-/* ===== DASHBOARD LAYOUT ===== */
+/* DASHBOARD LAYOUT  */
 .dashboard-container {
     display: flex;
     min-height: 100vh;
@@ -79,7 +75,7 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* enhancement — stronger active state */
+/* active state */
 .sidebar-link.active {
     background: var(--primary-color);
     font-weight: 600;
@@ -90,12 +86,12 @@
     font-size: 1.3rem;
 }
 
-/* ===== MAIN CONTENT AREA ===== */
+/*  MAIN CONTENT AREA */
 .dashboard-main {
     flex: 1;
     margin-left: 260px;
     padding: 20px;
-    overflow-x: hidden; /* enhancement safety */
+    overflow-x: hidden; 
 }
 
 .dashboard-header {
@@ -156,13 +152,13 @@
     background: #a0370f;
 }
 
-/* click feedback enhancement */
+/* click feedback  */
 .btn-logout:active {
     transform: translateY(1px);
     opacity: 0.9;
 }
 
-/* ===== STATS CARDS ===== */
+/* stats cards */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -213,7 +209,7 @@
     margin-top: 5px;
 }
 
-/* ===== SECTIONS ===== */
+/* sections */
 .dashboard-section {
     background: white;
     padding: 25px;
@@ -237,13 +233,13 @@
     color: var(--secondary-color);
 }
 
-/* ===== TABLE WRAPPER ENHANCEMENT ===== */
+/* table wrappers */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
-/* ===== BUTTON PRESS FEEDBACK ===== */
+/* buttonpressed */
 .btn-add:active,
 .btn-submit:active,
 .btn-cancel:active,
@@ -252,7 +248,7 @@
     opacity: 0.9;
 }
 
-/* ===== MODAL ANIMATION ENHANCEMENT ===== */
+/* modal animation */
 .modal-content {
     animation: modalPop 0.18s ease-out;
 }
@@ -262,13 +258,13 @@
     to { transform: scale(1); opacity: 1; }
 }
 
-/* ===== CHART TEXT SAFETY ===== */
+/* chart text */
 .chart-bar-value {
     pointer-events: none;
     font-size: 0.9rem;
 }
 
-/* ===== DISABLED INPUT STATE ===== */
+/* disabled input state */
 input:disabled,
 textarea:disabled,
 select:disabled {
@@ -277,7 +273,6 @@ select:disabled {
     opacity: 0.7;
 }
 
-/* ===== ACCESSIBILITY FOCUS ===== */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -285,9 +280,7 @@ select:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
-/* =========================
-   ADMIN DASHBOARD POLISH
-========================= */
+/* ADMIN DASHBOARD POLISH */
 
 .dashboard-container {
     display: flex;
@@ -295,7 +288,7 @@ select:focus-visible {
     background: #f4f6f9;
 }
 
-/* ===== SIDEBAR ===== */
+/* sidebar*/
 
 .sidebar {
     width: 240px;
@@ -345,14 +338,14 @@ select:focus-visible {
     color: white;
 }
 
-/* ===== MAIN ===== */
+/* main */
 
 .dashboard-main {
     flex: 1;
     padding: 24px;
 }
 
-/* ===== HEADER ===== */
+/* header */
 
 .dashboard-header {
     display: flex;
@@ -365,7 +358,7 @@ select:focus-visible {
     box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 }
 
-/* ===== USER ===== */
+/* =user*/
 
 .user-info {
     display: flex;
@@ -390,7 +383,7 @@ select:focus-visible {
     background: #dc2626;
 }
 
-/* ===== SECTIONS ===== */
+/* sections */
 
 .admin-content-section {
     display: none;
@@ -400,7 +393,7 @@ select:focus-visible {
     display: block;
 }
 
-/* ===== STATS ===== */
+/* stats */
 
 .stats-grid {
     display: grid;
@@ -421,7 +414,7 @@ select:focus-visible {
     margin-top: 8px;
 }
 
-/* ===== TABLE LOOK ===== */
+/* table look */
 
 table {
     width: 100%;

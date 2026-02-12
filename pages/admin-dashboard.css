@@ -1,4 +1,4 @@
-
+/*for admin dashboard only*/
 :root {
     --primary-color: #3b82f6;
     --secondary-color: #6366f1;
@@ -24,7 +24,7 @@
     --header-height: 70px;
 }
 
-/* Reset & Base Styles */
+/* basic styles */
 * {
     margin: 0;
     padding: 0;
@@ -38,9 +38,7 @@ body {
     line-height: 1.6;
 }
 
-/* ===============================
-   TOP HEADER BAR
-   =============================== */
+/* header */
 
 .top-header {
     position: fixed;
@@ -183,9 +181,7 @@ body {
     color: var(--text-secondary);
 }
 
-/* ===============================
-   SIDEBAR NAVIGATION
-   =============================== */
+/* sidebar navigation */
 
 .sidebar {
     position: fixed;
@@ -235,9 +231,7 @@ body {
     font-size: 14px;
 }
 
-/* ===============================
-   MAIN CONTENT AREA
-   =============================== */
+/* main content area */
 
 .main-content {
     margin-left: var(--sidebar-width);
@@ -283,9 +277,7 @@ body {
     font-size: 14px;
 }
 
-/* ===============================
-   STATS CARDS
-   =============================== */
+/* stats card */
 
 .stats-grid {
     display: grid;
@@ -356,9 +348,7 @@ body {
     color: var(--danger-color);
 }
 
-/* ===============================
-   CHARTS
-   =============================== */
+/* charts */
 
 .charts-grid {
     display: grid;
@@ -420,9 +410,7 @@ body {
     max-height: 100%;
 }
 
-/* ===============================
-   ACTIVITY FEED
-   =============================== */
+/* activity feed */
 
 .activity-card {
     background: var(--bg-secondary);
@@ -471,9 +459,7 @@ body {
     color: var(--text-light);
 }
 
-/* ===============================
-   FILTER BAR
-   =============================== */
+/* filter bar */
 
 .filter-bar {
     display: flex;
@@ -508,9 +494,7 @@ body {
     min-width: 200px;
 }
 
-/* ===============================
-   DATA TABLES
-   =============================== */
+/* data tables */
 
 .data-table {
     background: var(--bg-secondary);
@@ -567,9 +551,7 @@ body {
     object-fit: cover;
 }
 
-/* ===============================
-   STATUS BADGES
-   =============================== */
+/* status badges */
 
 .badge {
     display: inline-block;
@@ -645,9 +627,7 @@ body {
     color: #1e40af;
 }
 
-/* ===============================
-   BUTTONS
-   =============================== */
+/* buttons*/
 
 .btn-primary,
 .btn-secondary,
@@ -734,9 +714,7 @@ body {
     transform: scale(1.05);
 }
 
-/* ===============================
-   PAGINATION
-   =============================== */
+/* bagination */
 
 .pagination {
     display: flex;
@@ -765,9 +743,7 @@ body {
     border-color: var(--primary-color);
 }
 
-/* ===============================
-   SETTINGS SECTIONS
-   =============================== */
+/* settings section*/
 
 .settings-grid {
     display: grid;
@@ -825,9 +801,7 @@ body {
     margin-bottom: 0;
 }
 
-/* ===============================
-   MINI STATS
-   =============================== */
+/* mini stats */
 
 .stats-grid-small {
     display: grid;
@@ -856,9 +830,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ===============================
-   TABS
-   =============================== */
+/* tabs */
 
 .settings-tabs {
     display: flex;
@@ -897,9 +869,7 @@ body {
     animation: fadeIn 0.3s;
 }
 
-/* ===============================
-   MODAL
-   =============================== */
+/* modal */
 
 .modal {
     display: none;
@@ -980,9 +950,7 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
-/* ===============================
-   NOTIFICATION DROPDOWN
-   =============================== */
+/* notifications */
 
 .notification-dropdown {
     position: fixed;
@@ -1078,9 +1046,7 @@ body {
     margin-top: 4px;
 }
 
-/* ===============================
-   HELPER CLASSES
-   =============================== */
+/* helper class */
 
 .pending-count {
     background: var(--warning-color);
@@ -1133,9 +1099,7 @@ body {
     color: var(--text-secondary);
 }
 
-/* ===============================
-   RESPONSIVE DESIGN
-   =============================== */
+/* for ui responsiveness */
 
 @media (max-width: 1024px) {
     .charts-grid-large {
@@ -1208,12 +1172,7 @@ body {
         padding: 20px 15px;
     }
 }
-/* ===============================
-   PRACTICAL OVERRIDES (real-world tweaks)
-   Added after initial build phase
-   =============================== */
 
-/* Slightly less perfect card spacing */
 .stat-card,
 .chart-card,
 .settings-card,
@@ -1222,23 +1181,23 @@ body {
     border-radius: 10px;
 }
 
-/* Real devs often tighten padding after testing */
+/* padding */
 .stat-card { padding: 20px; }
 .chart-card { padding: 18px; }
 .settings-card { padding: 20px; }
 
-/* Table readability tweak after testing with real data */
+/* for table readability */
 .data-table td {
     vertical-align: middle;
     line-height: 1.4;
 }
 
-/* Image fallback behavior */
+/* Image fallback  */
 .product-img {
     background: #f3f4f6;
 }
 
-/* Buttons — slightly less “design system” feel */
+/* Buttons overall */
 .btn-primary,
 .btn-secondary,
 .btn-danger,
@@ -1246,13 +1205,13 @@ body {
     letter-spacing: 0.2px;
 }
 
-/* Realistic hover — less floaty */
+/* Realistic hover */
 .stat-card:hover,
 .chart-card:hover {
     transform: translateY(-1px);
 }
 
-/* Search bar — dev tweak after usability feedback */
+/* Search bar */
 .search-bar input::placeholder {
     color: #9aa0a6;
 }
@@ -1262,7 +1221,7 @@ body {
     scrollbar-width: thin;
 }
 
-/* Small UX polish people add later */
+
 .nav-item {
     font-size: 14px;
 }
@@ -1272,34 +1231,34 @@ body {
     white-space: nowrap;
 }
 
-/* Modal usability tweak */
+
 .modal-content {
     border-radius: 10px;
 }
 
-/* Notification list — real world overflow fix */
+/* Notification list  */
 .notification-item p {
     word-break: break-word;
 }
 
-/* Charts — prevent weird canvas stretching */
+/* Charts */
 .chart-placeholder canvas {
     width: 100% !important;
     height: auto !important;
 }
 
-/* Form inputs — dev consistency tweak */
+/* Form inputs*/
 input, select {
     font-family: inherit;
 }
 
-/* Reduce animation polish — more believable */
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-/* Mobile quick fix devs usually add later */
+
 @media (max-width: 600px) {
     .stat-value {
         font-size: 22px;

@@ -1,5 +1,5 @@
 
-//  CONFIGURATION 
+//  config
 const RECOMMEND_CONFIG = {
     MAX_RECOMMENDATIONS: 8,
     MIN_SCORE: 0.1,
@@ -9,14 +9,14 @@ const RECOMMEND_CONFIG = {
 };
 
 
-// SAFE PARSE HELPER (Enhancement)
+// Safe parser
 function safeParseRec(raw, fallback) {
     try { return JSON.parse(raw); }
     catch { return fallback; }
 }
 
 
-// SAVE CLICKED PRODUCT 
+// saves clicked prod
 function saveClickedProduct(productId) {
 
     const product = getProductById(productId);
@@ -32,7 +32,7 @@ function saveClickedProduct(productId) {
         timestamp: new Date().toISOString()
     });
 
-    // keep last 30
+    // keeps last 30
     clickedProducts = clickedProducts.slice(0, 30);
 
     localStorage.setItem(
@@ -42,7 +42,7 @@ function saveClickedProduct(productId) {
 }
 
 
-// GET CLICKED
+// gets clicked
 function getClickedProducts() {
     return safeParseRec(
         localStorage.getItem(RECOMMEND_CONFIG.STORAGE_KEY),
@@ -51,7 +51,7 @@ function getClickedProducts() {
 }
 
 
-// SEARCH KEYWORD EXTRACTION
+//search keyword etract
 function extractKeywordsFromSearches() {
 
     const searchHistory = getSearchHistory() || [];
@@ -79,7 +79,7 @@ function extractKeywordsFromSearches() {
 }
 
 
-// CLICK KEYWORD EXTRACTION 
+// click key word att
 function extractKeywordsFromClicks() {
 
     const clicked = getClickedProducts() || [];
@@ -106,7 +106,7 @@ function extractKeywordsFromClicks() {
 }
 
 
-//MERGE KEYWORD MAPS
+//Merge keyword map
 function mergeKeywordMaps(mapA, mapB) {
 
     const merged = new Map(mapA);
@@ -119,7 +119,7 @@ function mergeKeywordMaps(mapA, mapB) {
 }
 
 
-// SCORE
+// Score
 function calculateProductScore(product, userKeywords, userCategories) {
 
     if (!product || !Array.isArray(product.keywords)) return 0;
@@ -156,7 +156,7 @@ function calculateProductScore(product, userKeywords, userCategories) {
 }
 
 
-// MAIN RECOMMENDER
+// main recom
 function getRecommendedProducts(maxResults = RECOMMEND_CONFIG.MAX_RECOMMENDATIONS) {
 
     const allProducts = getAllProducts();
@@ -204,7 +204,7 @@ function getRecommendedProducts(maxResults = RECOMMEND_CONFIG.MAX_RECOMMENDATION
 }
 
 
-// POPULAR
+// Popular
 function getPopularProducts(maxResults = 8) {
 
     return [...getAllProducts()]
@@ -216,7 +216,7 @@ function getPopularProducts(maxResults = 8) {
 }
 
 
-//SIMILAR 
+//Similar
 function getSimilarProducts(productId, maxResults = 4) {
 
     const product = getProductById(productId);
@@ -252,7 +252,7 @@ function getSimilarProducts(productId, maxResults = 4) {
 }
 
 
-// TRENDING
+// Trending
 function getTrendingProducts(maxResults = 8) {
 
     const clicked = getClickedProducts();
@@ -281,7 +281,7 @@ function getTrendingProducts(maxResults = 8) {
 }
 
 
-// RENDER
+// Render
 function renderRecommendedProducts() {
 
     const container = document.getElementById('recommendedProducts');
@@ -300,7 +300,7 @@ function renderRecommendedProducts() {
 }
 
 
-// PRODUCT CARD
+// Product card
 function createProductCard(product) {
 
     const img = product.image || 'assets/images/placeholder.png';
@@ -332,7 +332,7 @@ function createProductCard(product) {
 }
 
 
-// VIEW PRODUCT 
+// View product
 function viewProduct(productId) {
     saveClickedProduct(productId);
     window.location.href =
@@ -340,7 +340,7 @@ function viewProduct(productId) {
 }
 
 
-// CLEAR DATA
+// clear data
 function clearRecommendationData() {
     localStorage.removeItem(RECOMMEND_CONFIG.STORAGE_KEY);
     localStorage.removeItem(APP_CONFIG.SEARCH_HISTORY_KEY);

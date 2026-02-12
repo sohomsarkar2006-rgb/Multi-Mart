@@ -1,8 +1,5 @@
-/* ===== GLOBAL STYLES ===== */
-/* This file contains all the main styling for the application */
-/* Students can modify colors, fonts, and spacing here */
+/* global styles-for entire project */
 
-/* ===== CSS VARIABLES (EASY TO CUSTOMIZE) ===== */
 :root {
     --primary-color: #FF9900;
     --primary-dark: #E68A00;
@@ -43,7 +40,7 @@ button:active {
     opacity: 0.95;
 }
 
-/* ===== LANDING PAGE STYLES ===== */
+/* landing page styles */
 .landing-container {
     min-height: 100vh;
     display: flex;
@@ -75,7 +72,7 @@ button:active {
     opacity: 0.9;
 }
 
-/* FIX: merged duplicate role-selection block safely */
+/* role selection*/
 .role-selection {
     background: white;
     padding: 40px;
@@ -148,7 +145,7 @@ button:active {
     opacity: 0.8;
 }
 
-/* ===== LOGIN PAGE STYLES ===== */
+/* login page */
 .login-container {
     min-height: 100vh;
     display: flex;
@@ -167,7 +164,7 @@ button:active {
     width: 100%;
 }
 
-/* subtle appear animation — safe */
+
 .login-box {
     animation: fadeInUp 0.25s ease-out;
 }
@@ -177,7 +174,7 @@ button:active {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== NAVIGATION BAR STYLES ===== */
+/* navigation bar */
 .navbar {
     background: var(--secondary-color);
     color: white;
@@ -192,49 +189,49 @@ button:active {
     opacity: 0.9;
 }
 
-/* ===== SEARCH BAR SAFETY ===== */
+/*search bar */
 .search-bar input {
-    min-width: 0; /* prevents flex overflow bug */
+    min-width: 0; 
 }
 
-/* ===== PRODUCT GRID STYLES ===== */
+/* product grid layout */
 .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* card overflow safety */
+/* card of safetey */
 .product-card {
     overflow: hidden;
 }
 
-/* ===== ADD-TO-CART BUTTON FEEDBACK ===== */
+/* add to cart  */
 .btn-add-cart:active {
     transform: translateY(1px);
     opacity: 0.95;
 }
 
-/* ===== CART ENHANCEMENTS ===== */
+
 .cart-item {
     overflow: hidden;
 }
 
-/* ===== EMPTY STATE SAFETY ===== */
+
 .empty-state {
     background: white;
     border-radius: 8px;
     box-shadow: var(--shadow-sm);
 }
 
-/* ===== DISABLED INPUT STATE ===== */
+/* disable input */
 input:disabled,
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* responsive */
 @media (max-width: 768px) {
 
     .role-selection {
@@ -256,7 +253,7 @@ button:disabled {
     }
 }
 
-/* ===== UTILITY CLASSES ===== */
+/* utility */
 .hidden { display: none !important; }
 .text-center { text-align: center; }
 .mt-20 { margin-top: 20px; }
@@ -265,9 +262,7 @@ button:disabled {
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .gap-10 { gap: 10px; }
 
-/* =========================
-   CART PAGE UI
-========================= */
+/* cart page ui */
 
 .cart-container {
     max-width: 1200px;
@@ -299,7 +294,7 @@ button:disabled {
     min-height: 200px;
 }
 
-/* Individual item rows your JS creates will inherit table/card styles */
+/* invidual cart item when added to cart */
 .cart-item {
     display: grid;
     grid-template-columns: 90px 1fr auto;
@@ -410,9 +405,7 @@ button:disabled {
     }
 }
 
-/* =========================
-   CHECKOUT PAGE UI
-========================= */
+/* check out page ui */
 
 .checkout-layout {
     display: grid;
@@ -531,9 +524,7 @@ button:disabled {
 }
 
 
-/* =========================
-   LOGIN PAGE STYLES
-========================= */
+/* login page */
 
 .login-container {
     min-height: 100vh;
@@ -606,9 +597,7 @@ button:disabled {
 }
 
 
-/* =========================
-   BUTTON
-========================= */
+/* button */
 
 .btn-primary {
     width: 100%;
@@ -633,9 +622,7 @@ button:disabled {
 }
 
 
-/* =========================
-   FOOTER LINKS
-========================= */
+/*footer links  */
 
 .form-footer {
     text-align: center;
@@ -655,9 +642,7 @@ button:disabled {
 }
 
 
-/* =========================
-   ALERTS
-========================= */
+/* for alerts */
 
 .alert {
     padding: 10px 12px;
@@ -683,9 +668,7 @@ button:disabled {
 }
 
 
-/* =========================
-   MODAL
-========================= */
+/* modal */
 
 .modal {
     position: fixed;
@@ -739,9 +722,7 @@ button:disabled {
 }
 
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* for responsive ness */
 
 @media (max-width: 480px) {
     .login-box {
@@ -749,9 +730,7 @@ button:disabled {
     }
 }
 
-/* ======================
-ORDER CONFIRMATION
-====================== */
+/* when order confirmed */
 
 .confirmation-card {
     max-width: 820px;
@@ -840,9 +819,7 @@ ORDER CONFIRMATION
     font-weight: 600;
 }
 
-/* ======================
-PRODUCT DETAILS PAGE
-====================== */
+/* product details  */
 
 .product-detail-grid {
     display: grid;
@@ -952,9 +929,7 @@ PRODUCT DETAILS PAGE
     }
 }
 
-/* ======================
-HOME PAGE POLISH
-====================== */
+/*home page */
 
 .section-sub {
     font-size: 13px;
@@ -1032,7 +1007,7 @@ HOME PAGE POLISH
     margin-top: 20px;
 }
 
-/* ===== QUICK NAVBAR FIX ===== */
+/* quick nav bar */
 
 .navbar {
     background: #1f2937;
@@ -1071,7 +1046,7 @@ HOME PAGE POLISH
     color: white;
 }
 
-/* ===== SEARCH BAR FIX ===== */
+/* search bar */
 
 .search-bar {
     display: flex;
@@ -1095,7 +1070,7 @@ HOME PAGE POLISH
     cursor: pointer;
 }
 
-/* ===== SECTION CARDS ===== */
+/* section cards */
 
 .section {
     background: white;
@@ -1105,7 +1080,7 @@ HOME PAGE POLISH
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
-/* ===== GRID ===== */
+/* grid*/
 
 .products-grid {
     display: grid;
@@ -1114,12 +1089,9 @@ HOME PAGE POLISH
     margin-top: 20px;
 }
 
-/* =========================
-   FINAL UI UNIFIER LAYER
-   (Paste at very bottom)
-========================= */
 
-/* --- Cards everywhere --- */
+
+/* for all cards */
 .section,
 .login-box,
 .cart-items,
@@ -1132,13 +1104,13 @@ HOME PAGE POLISH
 }
 
 
-/* --- Headings consistency --- */
+/* Headings consistency  */
 h1,h2,h3 {
     letter-spacing: -0.2px;
 }
 
 
-/* --- Buttons unified --- */
+/* Buttons unified  */
 button,
 .btn-primary,
 .btn-secondary,
@@ -1154,7 +1126,7 @@ button:hover {
 }
 
 
-/* --- Inputs unified --- */
+/*  Inputs unified  */
 input,
 select,
 textarea {
@@ -1171,7 +1143,7 @@ textarea:focus {
 }
 
 
-/* --- Product cards polish --- */
+/*  Product cards polish */
 .product-card {
     padding: 18px !important;
 }
@@ -1186,7 +1158,7 @@ textarea:focus {
 }
 
 
-/* --- Tables polish --- */
+/*  Tables polish  */
 table {
     background: white;
     border-radius: 12px;
@@ -1199,7 +1171,7 @@ th {
 }
 
 
-/* --- Modal polish --- */
+/*  Modal polish  */
 .modal-content {
     animation: modalPop 0.18s ease-out;
 }
@@ -1210,7 +1182,7 @@ th {
 }
 
 
-/* --- Dashboard stat cards --- */
+/* Dashboard stat cards  */
 .stat-card,
 .mini-stat {
     border-radius: 14px !important;
@@ -1218,19 +1190,19 @@ th {
 }
 
 
-/* --- Navbar depth --- */
+/*Navbar depth  */
 .navbar {
     box-shadow: 0 4px 14px rgba(0,0,0,0.18) !important;
 }
 
 
-/* --- Grid breathing space --- */
+/*Grid breathing space */
 .products-grid {
     margin-top: 22px !important;
 }
 
 
-/* --- Mobile polish --- */
+/* mobile polish(not working**) */
 @media (max-width: 768px) {
 
     .section {
