@@ -130,3 +130,80 @@ document.querySelectorAll('.sidebar-link').forEach(link=>{
 
 const firstSection=document.querySelector('#overview');
 if(firstSection)firstSection.classList.add('active');
+function adminApproveProduct(productId) {
+    const products = getAllProducts();
+    const p = products.find(x => x.id === productId);
+    if (!p) return;
+
+    p.status = "approved";
+    p.approvedAt = new Date().toISOString();
+
+    saveProductsToStorage(products);
+
+    loadAllProductsTable();
+}
+
+/* ========= Admin Products Table ========= */
+
+function loadAllProductsTable() {
+
+    if (typeof getAllProducts !== "function") return;
+
+    const products = getAllProducts();
+    const container = document.getElementById("productsDataTable");
+    if (!container) return;
+
+    if (!products.length) {
+        container.innerHTML = "<p>No products found</p>";
+        return;
+    }
+
+    container.innerHTML = `
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Vendor</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${products.map(p => `
+                <tr data-name="${p.name.toLowerCase()}"
+                    data-category="${p.category}">
+                    
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${formatPriceSafe(p.price)}</td>
+                    <td>${p.vendorName || "-"}</td>
+
+                    <td>
+                        <span class="badge ${p.status === 'approved' ? 'approved' : 'pending'}">
+                            ${p.status}
+                        </span>
+                    </td>
+
+                    <td>
+                        <button class="action-btn delete"
+                            onclick="adminDeleteProduct('${p.id}')">
+                            Delete
+                        </button>
+
+                        ${p.status === "pending"
+                          ? `<button class="action-btn view"
+                               onclick="adminApproveProduct('${p.id}')">
+                               Approve
+                             </button>`
+                          : ""}
+                    </td>
+
+                </tr>
+            `).join("")}
+        </tbody>
+    </table>`;
+}
+
+

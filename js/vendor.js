@@ -73,7 +73,8 @@ function addProduct(productData) {
 
     productData.id = 'p' + Date.now();
     productData.vendorId = user.id;
-    productData.vendorName = user.name;
+    productData.vendorName = getVendorDisplayName(user);
+
     productData.rating = 0;
     productData.reviews = 0;
     productData.createdAt = new Date().toISOString();
@@ -171,3 +172,8 @@ function handleLogout() {
 
 if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', initVendorDashboard);
 else initVendorDashboard();
+/* ===== Vendor Safe Name Helper ===== */
+
+function getVendorDisplayName(user) {
+    return user.storeName || user.name || "Vendor";
+}
