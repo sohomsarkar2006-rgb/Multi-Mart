@@ -205,5 +205,38 @@ function loadAllProductsTable() {
         </tbody>
     </table>`;
 }
+/* ========= Admin Vendors Table ========= */
 
+/* ========= Admin Vendors Table ========= */
+
+function loadVendorsTable() {
+
+    if (typeof getAllUsers !== "function") return;
+
+    const res = getAllUsers();
+    if (!res.success) return;
+
+    const vendors = res.users.filter(u => u.role === "vendor");
+
+    const tbody = document.getElementById("vendorsTableBody"); // ✅ matches your HTML
+    if (!tbody) return;
+
+    if (!vendors.length) {
+        tbody.innerHTML = "<tr><td colspan='8'>No vendors found</td></tr>";
+        return;
+    }
+
+    tbody.innerHTML = vendors.map(v => `
+        <tr>
+            <td>${v.id}</td>
+            <td>${v.storeName || "-"}</td>
+            <td>${v.name}</td>
+            <td>${v.email}</td>
+            <td>${getProductsByVendor ? getProductsByVendor(v.id).length : 0}</td>
+            <td>—</td>
+            <td><span class="badge approved">Active</span></td>
+            <td><button class="action-btn view">View</button></td>
+        </tr>
+    `).join("");
+}
 

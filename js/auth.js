@@ -36,11 +36,29 @@ function login(email, password, role) {
     if (!email || !password) {
         return { success: false, message: "Please fill all fields" };
     }
+    // ---- Fixed Admin Login ----
+if (
+    role === "admin" &&
+    email === "admin@gmail.com" &&
+    password === "123456"
+) {
+    const adminUser = {
+        id: "admin_fixed",
+        email: email,
+        role: "admin",
+        name: "Administrator"
+    };
+
+    localStorage.setItem("session", JSON.stringify(adminUser));
+    return { success: true, message: "Admin login successful", user: adminUser };
+}
+
 
     let user = null;
 
     for (let i = 0; i < USERS_DB.length; i++) {
         if (
+            USERS_DB[i].role !== "admin" &&
             USERS_DB[i].email === email &&
             USERS_DB[i].password === password &&
             USERS_DB[i].role === role
@@ -59,7 +77,7 @@ function login(email, password, role) {
     return { success: true, message: "Login successful", user: user };
 }
 
-function register(email, password, confirmPassword, role, name, storeName) {
+function register(email, password, confirmPassword, role, name, storeName, storeAddress, regNumber){
     if (!email || !password || !confirmPassword || !name) {
         return { success: false, message: "Please fill all fields" };
     }
@@ -74,18 +92,25 @@ function register(email, password, confirmPassword, role, name, storeName) {
         }
     }
 
-    if (role === "vendor" && !storeName) {
-        return { success: false, message: "Store name required" };
-    }
+    if (role === "vendor" && (!storeName || !storeAddress)) {
+    return { success: false, message: "Store name and address required" };
+}
+
 
     let newUser = {
-        id: role + "_" + Date.now(),
-        email: email,
-        password: password,
-        role: role,
-        name: name,
-        storeName: storeName || null
-    };
+    id: role + "_" + Date.now(),
+    email: email,
+    password: password,
+    role: role,
+    name: name,
+
+    storeName: storeName || null,
+    storeAddress: storeAddress || null,
+    regNumber: regNumber || null,
+
+    createdAt: new Date().toISOString()
+};
+
 
     USERS_DB.push(newUser);
     saveUsers();
