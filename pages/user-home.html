@@ -141,7 +141,7 @@ function loadPopularProductsSafe() {
     const container = document.getElementById('popularProducts');
     if (!container) return;
 
-    const products = getPopularProducts(8) || [];
+    const products = getPopularProducts(4) || [];
 
     container.innerHTML = products.length
         ? products.map(createProductCard).join('')
@@ -152,11 +152,11 @@ function renderRecommendedProductsSafe() {
     const container = document.getElementById('recommendedProducts');
     if (!container) return;
 
-    let products = getRecommendedProducts(8) || [];
+    let products = getRecommendedProducts(5) || [];
 
     // fallback if recommender cold start
     if (!products.length) {
-        products = getPopularProducts(8);
+        products = getPopularProducts(4);
     }
 
     container.innerHTML = products.length
