@@ -87,7 +87,7 @@ function loadRecentActivity(){
     if(!recentOrders.length){container.innerHTML='<p>No recent orders</p>';return;}
     container.innerHTML=recentOrders.map(o=>`<div style="padding:10px;border-bottom:1px solid var(--border-color)"><strong>#${o.id?.slice(-8)}</strong> — ${o.customerName||'Unknown'}<br><small>${o.createdAt||''} — ${formatPriceSafe(o.total)}</small></div>`).join('');
 }
-
+//filter
 function filterProducts(searchTerm){
     const rows=document.querySelectorAll('#productsDataTable tbody tr');
     const search=(searchTerm||'').toLowerCase();
