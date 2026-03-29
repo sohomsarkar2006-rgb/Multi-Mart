@@ -560,4 +560,191 @@ function editDistance(a, b) {
     return dp[a.length][b.length];
 }
 
+// Featured Products Rendering
+function renderFeaturedProducts() {
+    const featured = getPopularProducts(4);
+    const container = document.getElementById('featuredProducts');
+    if (!container) return;
+    
+    container.innerHTML = featured.map(p => `
+        <div class="product-card" onclick="viewProduct('${p.id}')">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+                <div class="product-category">${p.category}</div>
+                <h3 class="product-name">${p.name}</h3>
+                <div class="product-rating">
+                    <span>⭐ ${p.rating}</span>
+                    <span>(${p.reviews} reviews)</span>
+                </div>
+                <div class="product-price">${formatPrice(p.price)}</div>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); addProductToCart('${p.id}')">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render All Products
+function renderAllProducts() {
+    const products = getAllProducts(false);
+    const container = document.getElementById('allProducts');
+    if (!container) return;
+    
+    container.innerHTML = products.map(p => `
+        <div class="product-card" onclick="viewProduct('${p.id}')">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+                <div class="product-category">${p.category}</div>
+                <h3 class="product-name">${p.name}</h3>
+                <div class="product-rating">
+                    <span>⭐ ${p.rating}</span>
+                </div>
+                <div class="product-price">${formatPrice(p.price)}</div>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); addProductToCart('${p.id}')">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Initialize page on load
+document.addEventListener('DOMContentLoaded', function() {
+    renderFeaturedProducts();
+    renderAllProducts();
+    updateCartBadge();
+    
+    // Update user greeting
+    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    const greeting = document.getElementById('userGreeting');
+    if (greeting && user) {
+        greeting.textContent = `Hello, ${user.name}`;
+    }
+
+    // Close modals on outside click
+    document.addEventListener('click', function(e) {
+        const categoriesMenu = document.getElementById('categoriesMenu');
+        const searchModal = document.getElementById('searchModal');
+        
+        if (categoriesMenu && !e.target.closest('.nav-link') && !e.target.closest('.categories-menu')) {
+            categoriesMenu.classList.add('hidden');
+        }
+    });
+
+    // Search modal input handler
+    const searchInput = document.getElementById('searchModalInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            performModalSearch(this.value);
+        });
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const firstResult = document.querySelector('.search-result-item');
+                if (firstResult) firstResult.click();
+            }
+        });
+    }
+});
+
+// Categories Menu Toggle
+function toggleCategoriesMenu(e) {
+    e.preventDefault();
+    const menu = document.getElementById('categoriesMenu');
+    menu.classList.toggle('hidden');
+}
+
+// Select Category from Menu
+function selectCategory(category) {
+    const menu = document.getElementById('categoriesMenu');
+    menu.classList.add('hidden');
+    
+    // Filter products by category
+    const products = category ? getProductsByCategory(category) : getAllProducts(false);
+    const container = document.getElementById('allProducts');
+    
+    if (container) {
+        container.innerHTML = products.map(p => `
+            <div class="product-card" onclick="viewProduct('${p.id}')">
+                <img src="${p.image}" alt="${p.name}">
+                <div class="product-info">
+                    <div class="product-category">${p.category}</div>
+                    <h3 class="product-name">${p.name}</h3>
+                    <div class="product-rating">
+                        <span>⭐ ${p.rating}</span>
+                    </div>
+                    <div class="product-price">${formatPrice(p.price)}</div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); addProductToCart('${p.id}')">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Scroll to products section
+    setTimeout(() => {
+        document.querySelector('.all-products-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+// Scroll to Featured Section
+function scrollToFeatured(e) {
+    e.preventDefault();
+    const featuredSection = document.querySelector('.featured-section');
+    if (featuredSection) {
+        featuredSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Scroll to Categories Section
+function scrollToCategories(e) {
+    e.preventDefault();
+    const categoriesSection = document.querySelector('.category-section');
+    if (categoriesSection) {
+        categoriesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Open Search Modal
+function openSearchModal(e) {
+    e.preventDefault();
+    const modal = document.getElementById('searchModal');
+    modal.classList.remove('hidden');
+    document.getElementById('searchModalInput').focus();
+}
+
+// Close Search Modal
+function closeSearchModal() {
+    const modal = document.getElementById('searchModal');
+    modal.classList.add('hidden');
+}
+
+// Perform Search in Modal
+function performModalSearch(query) {
+    const results = searchProducts(query);
+    const container = document.getElementById('searchModalResults');
+    
+    if (!query.trim()) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    if (results.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.6);">No products found</div>';
+        return;
+    }
+    
+    container.innerHTML = results.map(p => `
+        <div class="search-result-item" onclick="viewProduct('${p.id}')">
+            <img src="${p.image}" alt="${p.name}" class="search-result-img">
+            <div class="search-result-info">
+                <div class="search-result-name">${p.name}</div>
+                <div class="search-result-price">${formatPrice(p.price)}</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${p.category}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
 

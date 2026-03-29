@@ -8,93 +8,194 @@
 </head>
 <body>
 
-<!-- nav bar -->
+<!-- Promotional Banner -->
+<div class="promo-banner">
+    Free shipping on orders over $75 | Use code STRIPE20 for 20% off your first order
+</div>
+
+<!-- Navbar -->
 <nav class="navbar">
     <div class="navbar-top">
-
-        <a href="user-home.html" class="navbar-logo">🛒 MultiMart</a>
-
-        <!-- Search -->
-        <div class="search-bar">
-            <input type="text" id="searchInput"
-                   placeholder="Search products..."
-                   onkeyup="handleSearch(event)">
-            <button onclick="performSearch()">Search</button>
+        <div class="navbar-left">
+            <a href="user-home.html" class="navbar-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">MultiMart</span>
+            </a>
         </div>
 
-        <!-- Actions -->
-        <div class="navbar-actions">
-            <span class="navbar-link" id="userGreeting">Hello, Guest</span>
+        <div class="navbar-center">
+            <a href="#" class="nav-link" onclick="openSearchModal(event)">Shop</a>
+            <a href="#" class="nav-link" onclick="toggleCategoriesMenu(event)">Categories</a>
+            <a href="#" class="nav-link" onclick="scrollToFeatured(event)">Featured</a>
+            <a href="#" class="nav-link">Sale</a>
+            <a href="#" class="nav-link">About</a>
+        </div>
 
-            <a href="cart.html" class="navbar-link cart-icon">
-                🛒 Cart
+        <div class="navbar-right">
+            <button class="nav-icon-btn search-btn" title="Search" onclick="openSearchModal(event)">🔍</button>
+            <button class="nav-icon-btn" title="Theme">🌙</button>
+            <a href="cart.html" class="cart-link">
+                <span class="cart-icon">🛒</span>
                 <span class="cart-badge">0</span>
             </a>
-
-            <a href="#" onclick="handleUserLogout()" class="navbar-link logout-link">
-                Logout
-            </a>
         </div>
-
     </div>
 </nav>
 
-<!--main content -->
-<div class="container">
-
-    <!-- Search Results -->
-    <div id="searchResults" class="section hidden">
-        <div class="section-header">
-            <h2 class="section-title">Search Results</h2>
-            <a href="#" class="section-link" onclick="clearSearch(); return false;">
-                Clear
-            </a>
+<!-- Categories Dropdown Menu -->
+<div id="categoriesMenu" class="categories-menu hidden">
+    <div class="categories-menu-content">
+        <div class="categories-grid">
+            <div class="category-item" onclick="selectCategory('Electronics')">
+                <span class="category-icon">⚡</span>
+                <span class="category-name">Electronics</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Fashion')">
+                <span class="category-icon">👕</span>
+                <span class="category-name">Fashion</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Accessories')">
+                <span class="category-icon">👜</span>
+                <span class="category-name">Accessories</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Home')">
+                <span class="category-icon">🏠</span>
+                <span class="category-name">Home</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Sports')">
+                <span class="category-icon">⚽</span>
+                <span class="category-name">Sports</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Books')">
+                <span class="category-icon">📚</span>
+                <span class="category-name">Books</span>
+            </div>
         </div>
-
-        <div id="searchResultsGrid" class="products-grid"></div>
     </div>
+</div>
 
-    <!-- Recommended -->
-    <div class="section">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title">Recommended for You</h2>
-                <p class="section-sub">
-                    Based on your browsing activity
-                </p>
+<!-- Search Modal -->
+<div id="searchModal" class="search-modal hidden">
+    <div class="search-modal-content">
+        <div class="search-modal-header">
+            <input type="text" id="searchModalInput" class="search-modal-input" placeholder="Search products..." autofocus>
+            <button class="search-modal-close" onclick="closeSearchModal()">✕</button>
+        </div>
+        <div id="searchModalResults" class="search-modal-results"></div>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="hero-title-white">Discover Your</span>
+            <span class="hero-title-orange">Perfect Shop</span>
+        </h1>
+        <p class="hero-subtitle">
+            Everything you need in one place. From tech to fashion, quality products at unbeatable prices.
+        </p>
+        <div class="hero-buttons">
+            <button class="btn btn-primary" onclick="openSearchModal(event)">Shop Now →</button>
+            <button class="btn btn-secondary" onclick="scrollToCategories(event)">Browse Categories</button>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="hero-product-card">
+            <div class="hero-badge hero-badge-discount">UP TO 40% OFF</div>
+            <div class="hero-badge hero-badge-info">
+                <span>✓ Free Shipping</span>
+                Orders over $75
+            </div>
+            <div class="hero-badge hero-badge-returns">
+                <span>♻️ Easy Returns</span>
+                60-day guarantee
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Shop by Category Section -->
+<section class="category-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Shop by Category</h2>
+            <p class="section-subtitle">Find exactly what you're looking for</p>
+        </div>
+        <a href="#" class="view-all-link">View All →</a>
+    </div>
+    <div class="category-grid">
+        <div class="category-card" style="background: linear-gradient(135deg, rgba(220,38,38,0.9), rgba(220,38,38,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+            <div class="category-card-content">
+                <span class="product-count">48 products</span>
+                <h3 class="category-title">Electronics</h3>
+                <p class="category-desc">Latest gadgets and devices</p>
+                <a href="#" class="category-link">Shop Now →</a>
             </div>
         </div>
 
-        <div id="recommendedProducts" class="products-grid"></div>
-    </div>
-
-    <!-- Popular -->
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">Popular Products</h2>
+        <div class="category-card" style="background: linear-gradient(135deg, rgba(217,119,6,0.9), rgba(217,119,6,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+            <div class="category-card-content">
+                <span class="product-count">86 products</span>
+                <h3 class="category-title">Fashion</h3>
+                <p class="category-desc">Trendy clothing and accessories</p>
+                <a href="#" class="category-link">Shop Now →</a>
+            </div>
         </div>
 
-        <div id="popularProducts" class="products-grid"></div>
-    </div>
-
-    <!-- All -->
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">All Products</h2>
-
-            <select class="category-filter"
-                    onchange="filterByCategory(this.value)">
-                <option value="">All Categories</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Accessories">Accessories</option>
-            </select>
+        <div class="category-card" style="background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(59,130,246,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+            <div class="category-card-content">
+                <span class="product-count">32 products</span>
+                <h3 class="category-title">Accessories</h3>
+                <p class="category-desc">Complete your style</p>
+                <a href="#" class="category-link">Shop Now →</a>
+            </div>
         </div>
+    </div>
+</section>
 
-        <div id="allProducts" class="products-grid"></div>
+<!-- Featured Collection -->
+<section class="featured-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Featured Collection</h2>
+            <p class="section-subtitle">Our most popular styles handpicked for you</p>
+        </div>
+        <a href="#" class="view-all-link">View All Featured →</a>
     </div>
 
+    <div id="featuredProducts" class="featured-grid"></div>
+</section>
+
+<!-- Search Results (Hidden by default) -->
+<div id="searchResults" class="section hidden">
+    <div class="section-header">
+        <h2 class="section-title">Search Results</h2>
+        <a href="#" class="view-all-link" onclick="clearSearch(); return false;">Clear</a>
+    </div>
+    <div id="searchResultsGrid" class="products-grid"></div>
 </div>
+
+<!-- All Products Section -->
+<section class="all-products-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">All Products</h2>
+        </div>
+        <select class="category-filter" onchange="filterByCategory(this.value)">
+            <option value="">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Accessories">Accessories</option>
+        </select>
+    </div>
+    <div id="allProducts" class="products-grid"></div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>&copy; 2025 MultiMart. All rights reserved.</p>
+</footer>
 
 <!-- linking js -->
 <script src="../js/main.js"></script>
