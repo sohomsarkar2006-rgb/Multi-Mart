@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MultiMart</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(255,153,0,0.18), transparent 24%),
+                radial-gradient(circle at top right, rgba(0,123,255,0.16), transparent 28%),
+                linear-gradient(180deg, #101a31 0%, #0f172a 52%, #09101d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .admin-login-wrap {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(255,153,0,0.08), rgba(255,153,0,0.02)), rgba(26,40,71,0.92);
+            padding: 32px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,153,0,0.25);
+            box-shadow: 0 24px 55px rgba(0,0,0,0.35);
+            backdrop-filter: blur(14px);
+        }
+        .admin-login-wrap h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .admin-login-wrap .subtext {
+            color: #b0b8c1;
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+        .admin-login-wrap .form-group { margin-bottom: 16px; }
+        .admin-login-wrap label {
+            color: #dbe5f0;
+            display: block;
+            margin-bottom: 7px;
+            font-size: 0.92rem;
+        }
+        .admin-login-wrap input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(90,113,148,0.45);
+            border-radius: 10px;
+            background: rgba(15,23,42,0.92);
+            color: #fff;
+            outline: none;
+        }
+        .admin-login-wrap input:focus {
+            border-color: rgba(255,153,0,0.55);
+            box-shadow: 0 0 0 3px rgba(255,153,0,0.14);
+        }
+        .admin-login-wrap .btn-primary {
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid rgba(255,153,0,0.5);
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff9900, #e68a00);
+            box-shadow: 0 12px 24px rgba(255,153,0,0.18);
+        }
+        .admin-login-wrap .message { margin-top: 14px; color: #fbbf24; }
+        .admin-login-wrap a { color: #ff9900; text-decoration: none; }
+        .admin-login-wrap a:hover { color: #ffc266; }
+        .admin-login-wrap .hint {
+            margin-top: 18px;
+            color: #b0b8c1;
+            text-align: center;
+            font-size: 0.94rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-wrap">
+        <h2>Admin Sign In</h2>
+        <p class="subtext">Manage the marketplace with the same MultiMart dashboard theme.</p>
+
+        <div id="message" class="message" style="display:none;"></div>
+
+        <div class="form-group">
+            <label for="adminEmail">Email</label>
+            <input type="email" id="adminEmail" placeholder="admin@gmail.com" value="admin@gmail.com" required>
+        </div>
+        <div class="form-group">
+            <label for="adminPassword">Password</label>
+            <input type="password" id="adminPassword" placeholder="123456" value="123456" required>
+        </div>
+        <button class="btn-primary" id="adminLoginBtn">Login</button>
+
+        <p class="hint">Use unified credential: <strong>admin@gmail.com / 123456</strong></p>
+        <p class="hint"><a href="login.html">Go to Global Login</a></p>
+    </div>
+
+    <script>
+        const ADMIN_EMAIL = 'admin@gmail.com';
+        const ADMIN_PASSWORD = '123456';
+
+        document.getElementById('adminLoginBtn').addEventListener('click', function () {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const msg = document.getElementById('message');
+
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                localStorage.setItem('adminEmail', email);
+                msg.style.color = '#22c55e';
+                msg.textContent = 'Login successful. Redirecting...';
+                msg.style.display = 'block';
+
+                setTimeout(() => {
+                    window.location.href = 'admin-dashboard.html';
+                }, 600);
+            } else {
+                msg.style.color = '#f87171';
+                msg.textContent = 'Invalid admin credentials. Use admin@gmail.com / 123456';
+                msg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

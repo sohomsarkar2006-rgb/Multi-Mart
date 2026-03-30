@@ -31,7 +31,7 @@
         <li class="sidebar-item">
             <a href="#" class="sidebar-link"
                onclick="showSection(event,'products')">
-                📦 My Products
+                📦 Products
             </a>
         </li>
 
@@ -43,8 +43,22 @@
         </li>
 
         <li class="sidebar-item">
+            <a href="#" class="sidebar-link"
+               onclick="showSection(event,'earnings')">
+                💸 Earnings
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="#" class="sidebar-link"
+               onclick="showSection(event,'notifications')">
+                🔔 Alerts
+            </a>
+        </li>
+
+        <li class="sidebar-item">
             <a href="../index.html" class="sidebar-link">
-                🏠 Back to Home
+                🏠 Back Home
             </a>
         </li>
 
@@ -55,58 +69,97 @@
 <main class="dashboard-main">
 
 <header class="dashboard-header">
-    <h1 class="dashboard-title">Vendor Dashboard</h1>
+    <h1 class="dashboard-title">Dashboard</h1>
 
-    <div class="user-info">
-        <div class="user-avatar">🏪</div>
-        <div class="user-details">
-            <h4 class="user-name">Vendor</h4>
-            <p class="store-name">My Store</p>
+    <div class="header-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search products, orders...">
+    </div>
+
+    <div class="header-actions">
+        <button class="header-icon-btn" title="Notifications">
+            🔔
+            <span class="notification-badge" id="notificationCount">3</span>
+        </button>
+        <button class="header-icon-btn" title="Messages">💬</button>
+        <div class="user-info">
+            <div class="user-avatar">🏪</div>
+            <div class="user-details">
+                <h4 class="user-name">Vendor</h4>
+                <p class="store-name">My Store</p>
+            </div>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
         </div>
-        <button class="btn-logout" onclick="handleLogout()">Logout</button>
     </div>
 </header>
 
 <!--overview -->
 <section id="overview" class="vendor-section active-section">
 
-    <h2 class="section-heading">Overview</h2>
+    <h2 class="section-heading">📊 Overview</h2>
 
     <div class="stats-grid">
 
         <div class="stat-card">
             <div class="stat-header">
-                <span>Total Products</span>
-                <span>📦</span>
+                <span class="stat-title">Total Products</span>
+                <span class="stat-icon">📦</span>
             </div>
-            <div class="stat-value" id="totalProducts">1</div>
+            <div class="stat-value" id="totalProducts">0</div>
+            <div class="stat-meta neutral" id="totalProductsGrowth">→ No change</div>
+            <canvas id="sparkTotalProducts" class="sparkline"></canvas>
         </div>
 
         <div class="stat-card success">
             <div class="stat-header">
-                <span>Total Orders</span>
-                <span>🛍️</span>
+                <span class="stat-title">Total Orders</span>
+                <span class="stat-icon">🛒</span>
             </div>
-            <div class="stat-value" id="totalOrders">1</div>
+            <div class="stat-value" id="totalOrders">0</div>
+            <div class="stat-meta neutral" id="totalOrdersGrowth">→ No change</div>
+            <canvas id="sparkTotalOrders" class="sparkline"></canvas>
         </div>
 
         <div class="stat-card warning">
             <div class="stat-header">
-                <span>Total Revenue</span>
-                <span>💰</span>
+                <span class="stat-title">Today's Revenue</span>
+                <span class="stat-icon">💰</span>
             </div>
-            <div class="stat-value" id="totalRevenue">₹1234.00</div>
+            <div class="stat-value" id="totalRevenue">₹0</div>
+            <div class="stat-meta neutral" id="totalRevenueGrowth">→ Calculating...</div>
+            <canvas id="sparkRevenue" class="sparkline"></canvas>
         </div>
 
         <div class="stat-card danger">
             <div class="stat-header">
-                <span>Pending Orders</span>
-                <span>⏳</span>
+                <span class="stat-title">Pending Orders</span>
+                <span class="stat-icon">⏳</span>
             </div>
             <div class="stat-value" id="pendingOrders">0</div>
+            <div class="stat-meta neutral" id="pendingOrdersGrowth">Needs attention</div>
+            <canvas id="sparkPending" class="sparkline"></canvas>
         </div>
 
     </div>
+
+    <div class="analytics-grid">
+        <div class="dashboard-section analytics-card">
+            <h3 class="analytics-title">Sales Trend</h3>
+            <canvas id="salesTimelineChart" height="160"></canvas>
+            <div class="analytics-note" id="trendText">📈 Trend: analyzing...</div>
+        </div>
+
+        <div class="dashboard-section analytics-card">
+            <h3 class="analytics-title">Orders vs Revenue</h3>
+            <canvas id="ordersRevenueChart" height="160"></canvas>
+        </div>
+
+        <div class="dashboard-section analytics-card">
+            <h3 class="analytics-title">Top Sellers</h3>
+            <div id="topProductsList" class="top-products-list"></div>
+        </div>
+    </div>
+
 </section>
 
 <!-- products-->
@@ -130,10 +183,54 @@
 <section id="orders" class="vendor-section">
 
     <div class="dashboard-section">
-        <h2 class="section-title">My Orders</h2>
+        <div class="section-header">
+            <h2 class="section-title">My Orders</h2>
+            <div class="order-controls">
+                <button class="btn-secondary" onclick="filterVendorOrders('all')">All</button>
+                <button class="btn-secondary" onclick="filterVendorOrders('pending')">Pending</button>
+                <button class="btn-secondary" onclick="filterVendorOrders('processing')">Processing</button>
+                <button class="btn-secondary" onclick="filterVendorOrders('shipped')">Shipped</button>
+                <button class="btn-secondary" onclick="filterVendorOrders('delivered')">Delivered</button>
+                <button class="btn-secondary" onclick="filterVendorOrders('cancelled')">Cancelled</button>
+            </div>
+        </div>
         <div id="ordersTable"></div>
     </div>
 
+</section>
+
+<section id="earnings" class="vendor-section">
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title">Earnings & Payouts</h2>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <div class="stat-header"><span>Total Earnings</span><span>💸</span></div>
+                <div class="stat-value" id="totalEarnings">₹0.00</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-header"><span>Pending Payouts</span><span>⏳</span></div>
+                <div class="stat-value" id="pendingPayouts">₹0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header"><span>Withdraw</span><span>🏦</span></div>
+                <button class="btn-add" onclick="withdrawPayout()">Withdraw Money</button>
+            </div>
+        </div>
+
+        <div id="payoutHistory" class="table-wrapper"></div>
+    </div>
+</section>
+
+<section id="notifications" class="vendor-section">
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title">Notifications</h2>
+        </div>
+        <div id="notificationsList" class="top-products-list"></div>
+    </div>
 </section>
 
 </main>

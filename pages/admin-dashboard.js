@@ -125,10 +125,15 @@ function setupNavigation() {
 function setupMenuToggle() {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
+    const body = document.body;
     
-    if (menuToggle && sidebar) {
+    if (menuToggle && sidebar && body) {
         menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
+            body.classList.toggle('sidebar-collapsed');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('active');
+            }
         });
     }
 }

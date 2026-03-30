@@ -5,6 +5,7 @@ function initVendorDashboard() {
     loadVendorStats();
     loadVendorProducts();
     loadVendorOrders();
+    updateEarningsAndNotifications();
 }
 
 function displayVendorInfo() {
@@ -17,19 +18,297 @@ function displayVendorInfo() {
 function loadVendorStats() {
     const user = getCurrentUser();
     if (!user) return;
+
     const vendorProducts = typeof getProductsByVendor === 'function' ? getProductsByVendor(user.id) : [];
-    const totalProducts = vendorProducts.length;
     const allOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
     const vendorOrders = allOrders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
+
+    const totalProducts = vendorProducts.length;
     const totalOrders = vendorOrders.length;
-    let totalRevenue = 0;
-    vendorOrders.forEach(o => (o.items || []).forEach(i => { if (i.vendorId === user.id) totalRevenue += i.price * i.quantity; }));
-    const pendingOrders = vendorOrders.filter(o => ['pending','processing'].includes(o.status)).length;
+
+    const revenueByDay = getRevenueByDay(vendorOrders, 30);
+    const ordersByDay = getOrdersByDay(vendorOrders, 30);
+    const pendingOrders = vendorOrders.filter(o => ['pending','processing'].includes(o.status?.toLowerCase())).length;
+
+    const todayRevenue = revenueByDay.slice(-1)[0]?.value || 0;
+    const monthRevenue = revenueByDay.reduce((s, d) => s + d.value, 0);
+
     updateStatCard('totalProducts', totalProducts);
     updateStatCard('totalOrders', totalOrders);
-    updateStatCard('totalRevenue', formatPrice(totalRevenue));
+    updateStatCard('totalRevenue', formatPrice(todayRevenue));
     updateStatCard('pendingOrders', pendingOrders);
+
+    updateGrowth('totalProductsGrowth', totalProducts, vendorProducts.length > 1 ? totalProducts - 1 : 0);
+    updateGrowth('totalOrdersGrowth', totalOrders, getValueForDay(ordersByDay, -2));
+    updateGrowth('totalRevenueGrowth', todayRevenue, getValueForDay(revenueByDay, -2));
+    updateGrowth('pendingOrdersGrowth', pendingOrders, getPastPendingCount(vendorOrders, 1));
+
+    drawSparkline('sparkTotalProducts', createSequence(totalProducts));
+    drawSparkline('sparkTotalOrders', ordersByDay.map(d => d.value));
+    drawSparkline('sparkRevenue', revenueByDay.map(d => d.value));
+    drawSparkline('sparkPending', buildPendingTrend(vendorOrders));
+
+    renderSalesChart(revenueByDay, ordersByDay);
+    renderOrdersRevenueChart(ordersByDay, revenueByDay);
+    renderTopSelling(vendorProducts, vendorOrders);
 }
+
+function updateGrowth(id, value, yesterdayValue) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const diff = value - (yesterdayValue || 0);
+    const pct = yesterdayValue ? ((diff / yesterdayValue) * 100).toFixed(1) : '0.0';
+    const arrow = diff > 0 ? '↑' : (diff < 0 ? '↓' : '→');
+    const text = diff > 0 ? `${arrow} +${pct}%` : (diff < 0 ? `${arrow} ${pct}%` : `${arrow} No change`);
+    
+    el.textContent = text;
+    el.className = 'stat-meta';
+    
+    if (diff > 0) {
+        el.classList.add('positive');
+    } else if (diff < 0) {
+        el.classList.add('negative');
+    } else {
+        el.classList.add('neutral');
+    }
+}
+
+function getPastPendingCount(vendorOrders, daysAgo) {
+    const boundary = new Date();
+    boundary.setDate(boundary.getDate() - daysAgo);
+    return vendorOrders.filter(o => new Date(o.createdAt) <= boundary && ['pending','processing'].includes(o.status?.toLowerCase())).length;
+}
+
+function createSequence(value, length = 10) {
+    const list = [];
+    for (let i = 0; i < length; i++) list.push(Math.max(0, value - (length - i - 1) * (value / length/2)));
+    return list;
+}
+
+function getRevenueByDay(orders, days = 30) {
+    const now = new Date();
+    const map = {};
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0,10);
+        map[key] = 0;
+    }
+
+    orders.forEach(order => {
+        const dateKey = new Date(order.createdAt).toISOString().slice(0,10);
+        if (map.hasOwnProperty(dateKey)) {
+            order.items.forEach(i => {
+                if (i.vendorId === getCurrentUser()?.id) {
+                    map[dateKey] += (i.price * i.quantity);
+                }
+            });
+        }
+    });
+
+    return Object.entries(map).map(([day, value]) => ({ day, value }));
+}
+
+function getOrdersByDay(orders, days = 30) {
+    const now = new Date();
+    const map = {};
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0,10);
+        map[key] = 0;
+    }
+
+    orders.forEach(order => {
+        const dateKey = new Date(order.createdAt).toISOString().slice(0,10);
+        if (map.hasOwnProperty(dateKey)) {
+            map[dateKey] += 1;
+        }
+    });
+
+    return Object.entries(map).map(([day, value]) => ({ day, value }));
+}
+
+function getValueForDay(arr, offsetFromEnd = -1) {
+    if (!arr || !arr.length) return 0;
+    const idx = arr.length + offsetFromEnd;
+    if (idx < 0 || idx >= arr.length) return 0;
+    return arr[idx].value;
+}
+
+function buildPendingTrend(orders, days = 30) {
+    const pendingByDay = getOrdersByDay(orders.filter(o => ['pending','processing'].includes(o.status?.toLowerCase())), days);
+    return pendingByDay.map(d => d.value);
+}
+
+function drawSparkline(canvasId, values) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !canvas.getContext) return;
+
+    const ctx = canvas.getContext('2d');
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w*2;
+    canvas.height = h*2;
+    ctx.scale(2,2);
+
+    ctx.clearRect(0,0,w,h);
+    if (!values || values.length < 2) return;
+
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values, 0);
+    const len = values.length;
+    const xStep = w / (len - 1);
+
+    ctx.strokeStyle = '#1E88E5';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    values.forEach((v, index) => {
+        const x = index * xStep;
+        const y = h - ((v - min) / (max - min || 1) * h);
+        if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+
+    ctx.stroke();
+}
+
+function renderSalesChart(revenueByDay, ordersByDay) {
+    const canvas = document.getElementById('salesTimelineChart');
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const labels = revenueByDay.map(d => d.day.slice(5));
+    const sales = revenueByDay.map(d => d.value);
+    const avg = movingAverage(sales, 7);
+
+    const maxValue = Math.max(...sales, ...avg, 1);
+
+    const drawLine = (array, color) => {
+        ctx.beginPath();
+        array.forEach((val, i) => {
+            const x = (canvas.width / (array.length - 1)) * i;
+            const y = canvas.height - ((val / maxValue) * canvas.height);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    };
+
+    drawLine(sales, '#1E88E5');
+    drawLine(avg, '#43A047');
+
+    const trend = detectTrend(sales);
+    const trendText = document.getElementById('trendText');
+    if (trendText) trendText.textContent = `Trend: ${trend} (MA 7)`;
+}
+
+function renderOrdersRevenueChart(ordersByDay, revenueByDay) {
+    const c = document.getElementById('ordersRevenueChart');
+    if (!c || !c.getContext) return;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+
+    const orders = ordersByDay.map(d => d.value);
+    const revenue = revenueByDay.map(d => d.value / 50); // scale
+    const maxValue = Math.max(...orders, ...revenue, 1);
+
+    const drawLine = (data, color) => {
+        ctx.beginPath();
+        data.forEach((val, i) => {
+            const x = (c.width / (data.length - 1)) * i;
+            const y = c.height - ((val / maxValue) * c.height);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    };
+
+    drawLine(orders, '#f0ad4e');
+    drawLine(revenue, '#6f42c1');
+}
+
+function renderTopSelling(products, orders) {
+    const map = {};
+    orders.forEach(o => o.items?.forEach(i => { if (!map[i.productId]) map[i.productId] = 0; map[i.productId] += (i.vendorId===getCurrentUser()?.id ? i.quantity : 0); }));
+    const top = Object.entries(map)
+        .map(([id, qty]) => ({ product: products.find(p => p.id===id), sold: qty }))
+        .filter(x => x.product)
+        .sort((a,b)=> b.sold - a.sold)
+        .slice(0,5);
+
+    const container = document.getElementById('topProductsList');
+    if (!container) return;
+    if (!top.length) { container.innerHTML = '<p>No sales history yet.</p>'; return; }
+
+    container.innerHTML = top.map((item, idx) => `<div class="top-product-row"><span>${idx+1}. ${item.product.name}</span><strong>${item.sold} sold</strong></div>`).join('');
+}
+
+function movingAverage(data, windowSize = 7) {
+    if (!data || !data.length) return [];
+    const avg = [];
+    for (let i = 0; i < data.length; i++) {
+        const start = Math.max(0, i - windowSize + 1);
+        const segment = data.slice(start, i + 1);
+        avg.push(segment.reduce((a,b)=>a+b,0)/segment.length);
+    }
+    return avg;
+}
+
+function detectTrend(values) {
+    if (!values || values.length < 2) return 'stable';
+    const last = values.slice(-7);
+    const first = last.slice(0,3).reduce((a,b)=>a+b,0)/3;
+    const lastAvg = last.slice(-3).reduce((a,b)=>a+b,0)/3;
+    return lastAvg > first ? 'up' : (lastAvg < first ? 'down' : 'stable');
+}
+
+function updateEarningsAndNotifications() {
+    const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+    const user = getCurrentUser();
+    if (!user) return;
+    const vendorOrders = orders.filter(o => (o.items||[]).some(i=>i.vendorId===user.id));
+    const totalEarnings = vendorOrders.reduce((sum,o)=>sum + (o.items||[]).reduce((s,i)=>i.vendorId===user.id ? s+i.price*i.quantity : s,0),0);
+    const pendingPayouts = vendorOrders.filter(o => ['delivered'].includes(o.status?.toLowerCase())===false).reduce((sum,o)=>sum + (o.items||[]).reduce((s,i)=>i.vendorId===user.id ? s+i.price*i.quantity : s,0),0);
+
+    document.getElementById('totalEarnings').textContent = formatPrice(totalEarnings);
+    document.getElementById('pendingPayouts').textContent = formatPrice(pendingPayouts);
+
+    const history = vendorOrders.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,8);
+    const container = document.getElementById('payoutHistory');
+    if (container) {
+        if (!history.length) {
+            container.innerHTML = '<p>No transactions yet</p>';
+        } else {
+            container.innerHTML = `<table class="data-table"><thead><tr><th>Date</th><th>Order</th><th>Amount</th><th>Status</th></tr></thead><tbody>${history.map(o=>`<tr><td>${formatDate(o.createdAt)}</td><td>#${o.id.slice(-8)}</td><td>${formatPrice((o.items||[]).filter(i=>i.vendorId===user.id).reduce((s,i)=>s+i.price*i.quantity,0))}</td><td>${o.status}</td></tr>`).join('')}</tbody></table>`;
+        }
+    }
+
+    const pendingCount = vendorOrders.filter(o => ['pending','processing'].includes(o.status?.toLowerCase())).length;
+    const lowStockCount = (typeof getProductsByVendor === 'function' ? getProductsByVendor(user.id) : []).filter(p => p.stock <= 5).length;
+    const notificationTotal = pendingCount + Math.min(lowStockCount, 1) + 0; // add review count if available
+    
+    const notifBadge = document.getElementById('notificationCount');
+    if (notifBadge) notifBadge.textContent = Math.max(0, notificationTotal);
+
+    const notifications = [
+        pendingCount > 0 ? {text:`${pendingCount} pending order${pendingCount>1?'s':''}`, type:'danger'} : null,
+        lowStockCount > 0 ? {text:`${lowStockCount} product${lowStockCount>1?'s':''} low on stock 🔥`, type:'warning'} : null,
+        {text:'New reviews waiting for response', type:'info'}
+    ].filter(n => n);
+    
+    const notifContainer = document.getElementById('notificationsList');
+    if (notifContainer) notifContainer.innerHTML = notifications.map(n=>`<div class="top-product-row">${n.text}</div>`).join('');
+}
+
+function withdrawPayout(){
+    alert('Withdraw request created. It will process within 2 business days.');
+}
+
+
 
 function updateStatCard(id, value) {
     const el = document.getElementById(id);
@@ -40,13 +319,59 @@ function loadVendorProducts() {
     const user = getCurrentUser();
     if (!user || typeof getProductsByVendor !== 'function') return;
     const products = getProductsByVendor(user.id);
+    const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+
+    const vendorOrders = orders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
+    const salesMap = {};
+
+    vendorOrders.forEach(order => {
+        (order.items || []).forEach(i => {
+            if (i.vendorId === user.id) {
+                salesMap[i.productId] = salesMap[i.productId] || { sold: 0, revenue: 0 };
+                salesMap[i.productId].sold += i.quantity;
+                salesMap[i.productId].revenue += i.price * i.quantity;
+            }
+        });
+    });
+
     const container = document.getElementById('productsTable');
     if (!container) return;
     if (!products.length) {
         container.innerHTML = `<div class="empty-state"><p>No products yet</p><button class="btn-add" onclick="showAddProductForm()">Add Product</button></div>`;
         return;
     }
-    container.innerHTML = `<table class="data-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Rating</th><th>Actions</th></tr></thead><tbody>${products.map(p => `<tr><td><img src="${p.image || 'assets/images/placeholder.png'}"></td><td>${p.name}</td><td>${p.category}</td><td>${formatPrice(p.price)}</td><td>${p.stock}</td><td>${getStarRating(p.rating)}</td><td><div class="action-buttons"><button class="btn-icon btn-edit" onclick="editProduct('${p.id}')">✏️</button><button class="btn-icon btn-delete" onclick="deleteProductConfirm('${p.id}')">🗑️</button></div></td></tr>`).join('')}</tbody></table>`;
+
+    const rows = products.map(p => {
+        const sold = salesMap[p.id]?.sold || 0;
+        const revenue = salesMap[p.id]?.revenue || 0;
+        const conversion = p.views ? ((sold / p.views) * 100).toFixed(1) : '0.0';
+        const stockBadge = p.stock <= 5 ? '<span class="badge danger">Low stock 🔥</span>' : '';
+        return `<tr>
+            <td><img src="${p.image || 'assets/images/placeholder.png'}" alt="${p.name}" class="small-img"></td>
+            <td>${p.name}</td>
+            <td>${p.category}</td>
+            <td>${formatPrice(p.price)}</td>
+            <td>${p.stock} ${stockBadge}</td>
+            <td>${sold}</td>
+            <td>${formatPrice(revenue)}</td>
+            <td>${conversion}%</td>
+            <td><div class="action-buttons"><button class="btn-icon btn-edit" onclick="editProduct('${p.id}')">✏️</button><button class="btn-icon btn-delete" onclick="deleteProductConfirm('${p.id}')">🗑️</button></div></td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+    <div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Units Sold</th><th>Revenue</th><th>Conversion</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+    </table>
+    </div>`;
 }
 
 function showAddProductForm() {
@@ -143,15 +468,87 @@ function deleteProductConfirm(productId) {
     }
 }
 
+let vendorOrderFilter = 'all';
+
 function loadVendorOrders() {
     const user = getCurrentUser();
     if (!user || typeof getAllOrders !== 'function') return;
     const allOrders = getAllOrders();
-    const vendorOrders = allOrders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
+    const vendorOrders = allOrders
+        .filter(o => (o.items || []).some(i => i.vendorId === user.id));
+
+    renderVendorOrders(vendorOrders.filter(order => vendorOrderFilter === 'all' || order.status === vendorOrderFilter));
+}
+
+function renderVendorOrders(vendorOrders) {
     const container = document.getElementById('ordersTable');
     if (!container) return;
-    if (!vendorOrders.length) { container.innerHTML = `<div class="empty-state">No orders yet</div>`; return; }
-    container.innerHTML = `<table class="data-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody>${vendorOrders.map(o => { let total=0,count=0;(o.items||[]).forEach(i=>{if(i.vendorId===user.id){total+=i.price*i.quantity;count+=i.quantity}}); return `<tr><td>#${o.id.slice(-8)}</td><td>${formatDate(o.createdAt)}</td><td>${o.customerName}</td><td>${count}</td><td>${formatPrice(total)}</td><td><span class="badge badge-${getStatusBadgeClass(o.status)}">${o.status}</span></td></tr>`}).join('')}</tbody></table>`;
+    if (!vendorOrders.length) {
+        container.innerHTML = `<div class="empty-state">No orders for this filter</div>`;
+        return;
+    }
+
+    const rows = vendorOrders.map(o => {
+        let total = 0, count = 0;
+        (o.items || []).forEach(i => { if (i.vendorId === getCurrentUser()?.id) { total += i.price * i.quantity; count += i.quantity; } });
+
+        const canShip = ['pending', 'processing'].includes(o.status?.toLowerCase());
+        const statusBadge = `<span class="badge badge-${getStatusBadgeClass(o.status)}">${o.status}</span>`;
+
+        return `<tr>
+            <td>#${o.id?.slice(-8)}</td>
+            <td>${formatDate(o.createdAt)}</td>
+            <td>${o.customerName}</td>
+            <td>${count}</td>
+            <td>${formatPrice(total)}</td>
+            <td>${statusBadge}</td>
+            <td>
+                ${canShip ? `<button class="btn-secondary" onclick="markOrderShipped('${o.id}')">Mark as shipped</button>` : ''}
+                <button class="btn-secondary" onclick="trackOrder('${o.id}')">Track</button>
+                <button class="btn-secondary" onclick="downloadInvoice('${o.id}')">Invoice</button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+function filterVendorOrders(status) {
+    vendorOrderFilter = status || 'all';
+    loadVendorOrders();
+}
+
+function markOrderShipped(orderId) {
+    const order = getAllOrders().find(o => o.id === orderId);
+    if (!order) return;
+    order.status = 'shipped';
+    order.updatedAt = new Date().toISOString();
+    saveOrdersToStorage();
+    loadVendorOrders();
+    loadVendorStats();
+    showToastSafe(`Order #${order.id.slice(-8)} marked shipped`, 'success');
+}
+
+function trackOrder(orderId) {
+    const order = getAllOrders().find(o => o.id === orderId);
+    if (!order) return;
+    alert(`Tracking for ${order.id}: ${order.status}. Customer: ${order.customerName}`);
+}
+
+function downloadInvoice(orderId) {
+    const order = getAllOrders().find(o => o.id === orderId);
+    if (!order) return;
+    const invoice = `Invoice\nOrder: ${order.id}\nCustomer: ${order.customerName}\nTotal: ${formatPrice(order.total)}\nStatus: ${order.status}`;
+    alert(invoice);
 }
 
 function getStatusBadgeClass(status) {

@@ -50,6 +50,9 @@ if (
     };
 
     localStorage.setItem("session", JSON.stringify(adminUser));
+    localStorage.setItem("adminLoggedIn", "true");
+    localStorage.setItem("adminEmail", email);
+
     return { success: true, message: "Admin login successful", user: adminUser };
 }
 
