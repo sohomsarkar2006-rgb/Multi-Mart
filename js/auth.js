@@ -1,3 +1,11 @@
+const ADMIN_CREDENTIALS = {
+    id: "admin_1",
+    email: "admin@gmail.com",
+    password: "123456",
+    role: "admin",
+    name: "Admin"
+};
+
 let USERS_DB = [
     {
         id: "user_1",
@@ -14,73 +22,143 @@ let USERS_DB = [
         name: "Tech Store",
         storeName: "Tech Paradise"
     },
-    {
-        id: "admin_1",
-        email: "adminmh@gmail.com",
-        password: "12345678",
-        role: "admin",
-        name: "Admin"
-    }
+    ADMIN_CREDENTIALS
 ];
 
 let storedUsers = localStorage.getItem("users");
 if (storedUsers) {
-    USERS_DB = JSON.parse(storedUsers);
+    try {
+        const parsed = JSON.parse(storedUsers);
+        if (Array.isArray(parsed)) USERS_DB = parsed;
+    } catch (error) {
+        console.warn("Invalid users data in localStorage, resetting to default.", error);
+        saveUsers();
+    }
+}
+
+function toApiErrorMessage(error, fallbackMessage) {
+    const rawMessage = String(error?.message || '').trim();
+    if (!rawMessage || rawMessage === 'Failed to fetch') {
+        return 'Cannot reach the backend server. Start the backend with "cd backend" and "npm run dev".';
+    }
+    return rawMessage || fallbackMessage;
+}
+
+function authStatusMessage(message, backendAvailable) {
+    return backendAvailable ? message : `${message} (offline mode)`;
 }
 
 function saveUsers() {
     localStorage.setItem("users", JSON.stringify(USERS_DB));
 }
 
-function login(email, password, role) {
-    if (!email || !password) {
+async function login(email, password, role) {
+    if (!email || !password || !role) {
         return { success: false, message: "Please fill all fields" };
     }
-    // ---- Fixed Admin Login ----
-if (
-    role === "admin" &&
-    email === "admin@gmail.com" &&
-    password === "123456"
-) {
-    const adminUser = {
-        id: "admin_fixed",
-        email: email,
-        role: "admin",
-        name: "Administrator"
-    };
 
-    localStorage.setItem("session", JSON.stringify(adminUser));
-    localStorage.setItem("adminLoggedIn", "true");
-    localStorage.setItem("adminEmail", email);
+    let backendAvailable = false;
 
-    return { success: true, message: "Admin login successful", user: adminUser };
-}
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.login({ email, password, role });
+            backendAvailable = true;
 
+            if (response.token) {
+                window.MultiMartAPI.setToken(response.token);
+            }
+            if (response.user) {
+                localStorage.setItem("session", JSON.stringify(response.user));
+                localStorage.setItem("userLoggedIn", "true");
+                localStorage.setItem("userEmail", response.user.email);
 
-    let user = null;
+                if (response.user.role === "admin") {
+                    localStorage.setItem("adminLoggedIn", "true");
+                    localStorage.setItem("adminEmail", response.user.email);
+                } else if (response.user.role === "vendor") {
+                    localStorage.setItem("vendorLoggedIn", "true");
+                    localStorage.setItem("vendorEmail", response.user.email);
+                }
+            }
 
-    for (let i = 0; i < USERS_DB.length; i++) {
-        if (
-            USERS_DB[i].role !== "admin" &&
-            USERS_DB[i].email === email &&
-            USERS_DB[i].password === password &&
-            USERS_DB[i].role === role
-        ) {
-            user = USERS_DB[i];
-            break;
+            if (response.success === false) {
+                return { success: false, message: response.message || "Invalid email or password" };
+            }
+
+            if (response.user) {
+                return {
+                    success: true,
+                    message: response.message || "Login successful",
+                    user: response.user
+                };
+            }
+
+            console.warn("API login returned no user, applying local fallback.");
+        } catch (error) {
+            backendAvailable = false;
+            console.warn("API login failed, falling back to local auth:", error.message || error);
         }
     }
 
-    if (!user) {
+    // Local fallback mode
+    if (role === "admin") {
+        if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+            const adminUser = { ...ADMIN_CREDENTIALS };
+            localStorage.setItem("session", JSON.stringify(adminUser));
+            localStorage.setItem("adminLoggedIn", "true");
+            localStorage.setItem("adminEmail", email);
+            localStorage.setItem("userLoggedIn", "true");
+            localStorage.setItem("userEmail", email);
+            return {
+                success: true,
+                message: authStatusMessage("Admin login successful", backendAvailable),
+                user: adminUser
+            };
+        }
+
+        const foundAdmin = USERS_DB.find(u => u.role === "admin" && u.email === email && u.password === password);
+        if (foundAdmin) {
+            localStorage.setItem("session", JSON.stringify(foundAdmin));
+            localStorage.setItem("adminLoggedIn", "true");
+            localStorage.setItem("adminEmail", email);
+            localStorage.setItem("userLoggedIn", "true");
+            localStorage.setItem("userEmail", email);
+            return {
+                success: true,
+                message: authStatusMessage("Admin login successful", backendAvailable),
+                user: foundAdmin
+            };
+        }
+
         return { success: false, message: "Invalid email or password" };
     }
 
-    localStorage.setItem("session", JSON.stringify(user));
+    if (role === "vendor" || role === "customer") {
+        const user = USERS_DB.find(u => u.role === role && u.email === email && u.password === password);
+        if (!user) {
+            return { success: false, message: "Invalid email or password" };
+        }
 
-    return { success: true, message: "Login successful", user: user };
+        localStorage.setItem("session", JSON.stringify(user));
+        localStorage.setItem("userLoggedIn", "true");
+        localStorage.setItem("userEmail", email);
+
+        if (role === "vendor") {
+            localStorage.setItem("vendorLoggedIn", "true");
+            localStorage.setItem("vendorEmail", email);
+        }
+
+        return {
+            success: true,
+            message: authStatusMessage("Login successful", backendAvailable),
+            user: user
+        };
+    }
+
+    return { success: false, message: "Invalid role selected" };
 }
 
-function register(email, password, confirmPassword, role, name, storeName, storeAddress, regNumber){
+async function register(email, password, confirmPassword, role, name, storeName, storeAddress, regNumber){
     if (!email || !password || !confirmPassword || !name) {
         return { success: false, message: "Please fill all fields" };
     }
@@ -89,23 +167,49 @@ function register(email, password, confirmPassword, role, name, storeName, store
         return { success: false, message: "Passwords do not match" };
     }
 
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.register({
+                email,
+                password,
+                role,
+                name,
+                storeName,
+                storeAddress,
+                regNumber
+            });
+
+            return {
+                success: true,
+                message: response.message || "Registration successful",
+                user: response.user
+            };
+        } catch (error) {
+            console.warn("API registration failed, falling back to local registration:", error.message || error);
+            // do not return; execute local fallback registration
+        }
+    }
+
     for (let i = 0; i < USERS_DB.length; i++) {
         if (USERS_DB[i].email === email) {
             return { success: false, message: "Email already exists" };
         }
     }
 
-    if (role === "vendor" && (!storeName || !storeAddress)) {
-    return { success: false, message: "Store name and address required" };
-}
+    if (role === "admin") {
+        return { success: false, message: "Admin registration is not allowed through this form" };
+    }
 
+    if (role === "vendor" && (!storeName || !storeAddress)) {
+        return { success: false, message: "Store name and address required" };
+    }
 
     let newUser = {
-    id: role + "_" + Date.now(),
-    email: email,
-    password: password,
-    role: role,
-    name: name,
+        id: role + "_" + Date.now(),
+        email: email,
+        password: password,
+        role: role,
+        name: name,
 
     storeName: storeName || null,
     storeAddress: storeAddress || null,
@@ -124,15 +228,66 @@ function register(email, password, confirmPassword, role, name, storeName, store
 function getCurrentUser() {
     let data = localStorage.getItem("session");
     if (!data) return null;
-    return JSON.parse(data);
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        console.warn('Invalid session data, clearing session', error);
+        clearAuthSession();
+        return null;
+    }
 }
 
 function isLoggedIn() {
     return getCurrentUser() !== null;
 }
 
-function logout() {
+function hasBackendSession() {
+    return Boolean(window.MultiMartAPI && window.MultiMartAPI.getToken && window.MultiMartAPI.getToken());
+}
+
+function requireBackendSession(message) {
+    if (!window.MultiMartAPI) return true;
+    if (hasBackendSession()) return true;
+
+    alert(message || 'Please log in again so the backend can verify your session.');
+    clearAuthSession();
+    window.location.href = 'login.html';
+    return false;
+}
+
+function requireAuth(expectedRole) {
+    const user = getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return false;
+    }
+
+    if (expectedRole && user.role !== expectedRole) {
+        alert('Access denied');
+        clearAuthSession();
+        window.location.href = 'login.html';
+        return false;
+    }
+
+    return true;
+}
+
+function clearAuthSession() {
     localStorage.removeItem("session");
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminEmail");
+    localStorage.removeItem("vendorLoggedIn");
+    localStorage.removeItem("vendorEmail");
+    localStorage.removeItem("userLoggedIn");
+    localStorage.removeItem("userEmail");
+    if (window.MultiMartAPI) {
+        window.MultiMartAPI.clearToken();
+    }
+}
+
+function logout() {
+    clearAuthSession();
+    window.location.href = 'login.html';
     return { success: true };
 }
 

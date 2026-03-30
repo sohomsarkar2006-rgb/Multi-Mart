@@ -96,6 +96,7 @@
 
     <!-- Load JavaScript files -->
     <script src="../js/main.js"></script>
+    <script src="../js/api.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/cart.js"></script>
     <script src="../js/admin.js"></script>
@@ -107,6 +108,10 @@
         if (!isLoggedIn()) {
             alert('Please login to proceed with checkout');
             window.location.href = 'login.html';
+        }
+
+        if (typeof requireBackendSession === 'function') {
+            requireBackendSession('Your login session is not connected to the backend. Please log in again before placing an order.');
         }
 
         // Pre-fill user information
@@ -169,13 +174,18 @@
         // handle checkout
         // processes the order
         //send the data to backend
-        function handleCheckout(event) {
+        async function handleCheckout(event) {
             event.preventDefault();
             
             const form = event.target;
             const cart = getCart();
             const totals = getCartTotal();
             const user = getCurrentUser();
+
+            if (typeof requireBackendSession === 'function' &&
+                !requireBackendSession('Please log in again before placing your order.')) {
+                return;
+            }
             
             // Create order object
             const order = {
@@ -202,11 +212,43 @@
                 updatedAt: new Date().toISOString()
             };
             
-            // Save order to database (using admin.js functions)
-            const orders = getAllOrders();
-            orders.push(order);
-            saveOrdersToStorage();
+            if (window.MultiMartAPI) {
+                try {
+                    const response = await window.MultiMartAPI.createOrder({
+                        paymentMethod: form.paymentMethod.value,
+                        shippingAddress: `${form.address.value}, ${form.city.value}, ${form.state.value} ${form.zipCode.value}`,
+                        items: cart.map(item => ({
+                            productId: Number(String(item.productId || item.id || item.product_id).replace(/\D+/g, '')),
+                            quantity: Number(item.quantity)
+                        }))
+                    });
+
+                    const createdOrder = response.order || {};
+                    order.id = createdOrder.id || order.id;
+                    order.status = createdOrder.order_status || order.status;
+                    order.total = createdOrder.total_amount || order.total;
+                    order.subtotal = createdOrder.subtotal || order.subtotal;
+                    order.tax = createdOrder.tax_amount || order.tax;
+                    order.shipping = createdOrder.shipping_amount || order.shipping;
+                    order.createdAt = createdOrder.created_at || order.createdAt;
+                } catch (error) {
+                    console.warn('API checkout failed:', error.message);
+                    alert(error.message || 'Unable to place order right now. Please make sure the backend server is running.');
+                    return;
+                }
+            } else {
+                const orders = getAllOrders();
+                orders.push(order);
+                saveOrdersToStorage();
+            }
             
+            // Notify vendor dashboards (if open) that a new order was placed
+            try {
+                window.dispatchEvent(new CustomEvent('orderPlaced', { detail: order }));
+            } catch (e) {
+                console.warn('Order placed event dispatch failed', e);
+            }
+
             // Clear cart
             clearCart();
             

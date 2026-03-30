@@ -6,7 +6,7 @@
     <title>Product Details - MultiMart</title>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
-<body>
+<body class="product-details-page">
 
 <!--nav bar  -->
 <nav class="navbar">
@@ -41,6 +41,7 @@
 
 <!-- scripts -->
 <script src="../js/main.js"></script>
+<script src="../js/api.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/cart.js"></script>
 <script src="../js/recommend.js"></script>
@@ -54,8 +55,15 @@ if (!productId) {
     window.location.href = 'user-home.html';
 }
 
-loadProductDetails();
-loadSimilarProducts();
+initializeProductPage();
+
+async function initializeProductPage() {
+    if (typeof syncProductsFromApi === 'function') {
+        await syncProductsFromApi();
+    }
+    loadProductDetails();
+    loadSimilarProducts();
+}
 
 function loadProductDetails() {
     const product = getProductById(productId);
@@ -123,7 +131,7 @@ function loadProductDetails() {
                 <div class="pd-features">
                     <h4>Why buy here?</h4>
                     <ul>
-                        <li>Free shipping over $50</li>
+                        <li>Free shipping over ₹500</li>
                         <li>30-day return policy</li>
                         <li>Secure checkout</li>
                         <li>24/7 support</li>
@@ -146,9 +154,6 @@ function loadSimilarProducts() {
 
     container.innerHTML = products.map(createProductCard).join('');
 }
-
-addToCart(productId, 1);
-window.location.href = 'checkout.html';
 
 </script>
 

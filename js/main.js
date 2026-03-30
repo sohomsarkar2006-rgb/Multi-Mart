@@ -417,19 +417,27 @@ if (results.length) return results;
 
 function createProductCard(p) {
     return `
-    <div class="product-card" onclick="viewProduct('${p.id}')">
+    <a class="product-card" href="product-details.html?id=${encodeURIComponent(p.id)}" onclick="viewProduct('${p.id}'); return false;">
         <img src="${p.image}" alt="${p.name}">
         <h3>${p.name}</h3>
         <p class="price">${formatPrice(p.price)}</p>
         <p class="rating">${getStarRating(p.rating)} (${p.reviews})</p>
-        <button onclick="event.stopPropagation(); addProductToCart('${p.id}')">
+        <button onclick="event.preventDefault(); event.stopPropagation(); addProductToCart('${p.id}')">
             Add to Cart
         </button>
-    </div>`;
+    </a>`;
 }
 
 function viewProduct(id) {
     window.location.href = `product-details.html?id=${id}`;
+}
+
+function openProductFromSearch(id, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    closeSearchModal();
+    window.location.href = `product-details.html?id=${encodeURIComponent(id)}`;
 }
 
 function formatPrice(n) {
@@ -453,7 +461,24 @@ function getStarRating(r) {
 
 function getProductsByVendor(vendorId) {
     if (!vendorId) return [];
-    return getAllProducts().filter(p => p.vendorId === vendorId);
+
+    const allProducts = getAllProducts();
+    const normalizedVendorId = String(vendorId).trim();
+
+    // Handle numeric IDs from backend user objects vs local vendor id format
+    const vendorIdCandidates = new Set([normalizedVendorId]);
+    if (/^\d+$/.test(normalizedVendorId)) {
+        vendorIdCandidates.add('vendor_' + normalizedVendorId);
+        vendorIdCandidates.add(String(Number(normalizedVendorId)));
+    } else if (/^vendor_\d+$/.test(normalizedVendorId)) {
+        const numeric = normalizedVendorId.split('_')[1];
+        vendorIdCandidates.add(numeric);
+    }
+
+    return allProducts.filter(p => {
+        const pid = String(p.vendorId || '').trim();
+        return vendorIdCandidates.has(pid);
+    });
 }
 
 function addNewProductByVendor(productData, vendor) {
@@ -645,19 +670,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    document.addEventListener('keydown', function(e) {
+        const activeResult = document.activeElement;
+        if (
+            (e.key === 'Enter' || e.key === ' ') &&
+            activeResult &&
+            activeResult.classList &&
+            activeResult.classList.contains('search-result-item')
+        ) {
+            e.preventDefault();
+            activeResult.click();
+        }
+    });
 });
 
 // Categories Menu Toggle
 function toggleCategoriesMenu(e) {
     e.preventDefault();
     const menu = document.getElementById('categoriesMenu');
+    const toggle = document.getElementById('categoriesToggle');
+    const isHidden = menu.classList.contains('hidden');
     menu.classList.toggle('hidden');
+    toggle?.classList.toggle('active', isHidden);
+    toggle?.setAttribute('aria-expanded', String(isHidden));
+}
+
+function closeCategoriesMenu() {
+    const menu = document.getElementById('categoriesMenu');
+    const toggle = document.getElementById('categoriesToggle');
+    if (menu) menu.classList.add('hidden');
+    toggle?.classList.remove('active');
+    toggle?.setAttribute('aria-expanded', 'false');
 }
 
 // Select Category from Menu
 function selectCategory(category) {
-    const menu = document.getElementById('categoriesMenu');
-    menu.classList.add('hidden');
+    closeCategoriesMenu();
     
     // Filter products by category
     const products = category ? getProductsByCategory(category) : getAllProducts(false);
@@ -736,15 +785,120 @@ function performModalSearch(query) {
     }
     
     container.innerHTML = results.map(p => `
-        <div class="search-result-item" onclick="viewProduct('${p.id}')">
+        <a class="search-result-item" href="product-details.html?id=${encodeURIComponent(p.id)}" onclick="openProductFromSearch('${p.id}', event)">
             <img src="${p.image}" alt="${p.name}" class="search-result-img">
             <div class="search-result-info">
                 <div class="search-result-name">${p.name}</div>
                 <div class="search-result-price">${formatPrice(p.price)}</div>
                 <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${p.category}</div>
             </div>
-        </div>
+        </a>
     `).join('');
 }
+
+let REMOTE_PRODUCTS_CACHE = null;
+
+function normalizeApiProduct(product) {
+    if (!product) return null;
+
+    const numericId = Number(product.id || 0);
+    const vendorNumericId = Number(product.vendor_id || product.vendorId || 0);
+
+    return {
+        id: `p${numericId}`,
+        dbId: numericId,
+        name: product.name,
+        price: Number(product.price || 0),
+        category: product.category || "General",
+        stock: Number(product.stock || 0),
+        rating: Number(product.rating || 4.5),
+        reviews: Number(product.reviews || 0),
+        vendorId: vendorNumericId ? `vendor_${vendorNumericId}` : (product.vendorId || ""),
+        vendorName: product.vendor_name || product.vendorName || "Vendor",
+        image: product.image || product.image_url || "",
+        description: product.description || "",
+        keywords: product.keywords || [],
+        status: product.status || "approved",
+        createdAt: product.created_at || product.createdAt || new Date().toISOString()
+    };
+}
+
+async function syncProductsFromApi(force = false) {
+    if (!window.MultiMartAPI) return getAllProducts();
+    if (REMOTE_PRODUCTS_CACHE && !force) return REMOTE_PRODUCTS_CACHE;
+
+    try {
+        const response = await window.MultiMartAPI.getProducts();
+        const products = (response.products || []).map(normalizeApiProduct).filter(Boolean);
+        REMOTE_PRODUCTS_CACHE = products;
+        if (products.length) {
+            saveProductsToStorage(products);
+        }
+        return products;
+    } catch (error) {
+        console.warn("Product sync failed, using local catalog:", error.message);
+        return getAllProducts();
+    }
+}
+
+function renderProductGrid(containerId, products) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = products.map(p => `
+        <a class="product-card" href="product-details.html?id=${encodeURIComponent(p.id)}" onclick="viewProduct('${p.id}'); return false;">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+                <div class="product-category">${p.category}</div>
+                <h3 class="product-name">${p.name}</h3>
+                <div class="product-rating">
+                    <span>⭐ ${p.rating}</span>
+                    <span>(${p.reviews || 0} reviews)</span>
+                </div>
+                <div class="product-price">${formatPrice(p.price)}</div>
+                <button class="btn btn-primary" onclick="event.preventDefault(); event.stopPropagation(); addProductToCart('${p.id}')">
+                    Add to Cart
+                </button>
+            </div>
+        </a>
+    `).join('');
+}
+
+const originalGetProductById = getProductById;
+getProductById = function(id) {
+    const normalizedId = typeof id === 'number' ? `p${id}` : String(id);
+    return getAllProducts().find(p => p.id === normalizedId || String(p.dbId) === String(id)) || originalGetProductById(id);
+};
+
+const originalRenderFeaturedProducts = renderFeaturedProducts;
+renderFeaturedProducts = function() {
+    const container = document.getElementById('featuredProducts');
+    if (!container) return originalRenderFeaturedProducts();
+    renderProductGrid('featuredProducts', getPopularProducts(4));
+};
+
+const originalRenderAllProducts = renderAllProducts;
+renderAllProducts = function() {
+    const container = document.getElementById('allProducts');
+    if (!container) return originalRenderAllProducts();
+    renderProductGrid('allProducts', getAllProducts(false));
+};
+
+selectCategory = function(category) {
+    closeCategoriesMenu();
+
+    const products = category ? getProductsByCategory(category) : getAllProducts(false);
+    renderProductGrid('allProducts', products);
+
+    setTimeout(() => {
+        document.querySelector('.all-products-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+};
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await syncProductsFromApi();
+    renderFeaturedProducts();
+    renderAllProducts();
+});
 
 

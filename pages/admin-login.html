@@ -100,29 +100,27 @@
         <p class="hint"><a href="login.html">Go to Global Login</a></p>
     </div>
 
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
-        const ADMIN_EMAIL = 'admin@gmail.com';
-        const ADMIN_PASSWORD = '123456';
-
-        document.getElementById('adminLoginBtn').addEventListener('click', function () {
+        document.getElementById('adminLoginBtn').addEventListener('click', async function () {
             const email = document.getElementById('adminEmail').value.trim();
             const password = document.getElementById('adminPassword').value;
             const msg = document.getElementById('message');
 
-            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-                localStorage.setItem('adminLoggedIn', 'true');
-                localStorage.setItem('adminEmail', email);
+            const result = await login(email, password, 'admin');
+
+            msg.style.display = 'block';
+            if (result.success) {
                 msg.style.color = '#22c55e';
-                msg.textContent = 'Login successful. Redirecting...';
-                msg.style.display = 'block';
+                msg.textContent = result.message || 'Login successful. Redirecting...';
 
                 setTimeout(() => {
                     window.location.href = 'admin-dashboard.html';
                 }, 600);
             } else {
                 msg.style.color = '#f87171';
-                msg.textContent = 'Invalid admin credentials. Use admin@gmail.com / 123456';
-                msg.style.display = 'block';
+                msg.textContent = result.message || 'Invalid admin credentials. Use admin@gmail.com / 123456';
             }
         });
     </script>

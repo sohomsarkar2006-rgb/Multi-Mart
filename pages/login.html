@@ -118,6 +118,7 @@
     <!-- scripts -->
 
     <script src="../js/main.js"></script>
+    <script src="../js/api.js"></script>
     <script src="../js/auth.js"></script>
 
     <script>
@@ -136,7 +137,7 @@
 
 
         // login
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
 
             const form = event.target;
@@ -147,7 +148,7 @@
             btn.disabled = true;
             btn.textContent = "Checking...";
 
-            const result = login(email, password, currentRole);
+            const result = await login(email, password, currentRole);
 
             const alertBox = document.getElementById("alertBox");
             alertBox.className = result.success ? 
@@ -195,12 +196,12 @@
 
 
         // ===== REGISTER =====
-        function handleRegister(event) {
+        async function handleRegister(event) {
             event.preventDefault();
 
             const form = event.target;
 
-            const result = register(
+            const result = await register(
                 form.email.value,
                 form.password.value,
                 form.confirmPassword.value,

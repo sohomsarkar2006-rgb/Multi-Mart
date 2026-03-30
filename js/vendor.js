@@ -1,11 +1,44 @@
-function initVendorDashboard() {
+async function initVendorDashboard() {
     if (typeof requireAuth !== 'function') return;
     if (!requireAuth('vendor')) return;
     displayVendorInfo();
-    loadVendorStats();
-    loadVendorProducts();
-    loadVendorOrders();
-    updateEarningsAndNotifications();
+    await refreshVendorLiveData();
+    setupVendorLiveRefresh();
+}
+
+async function refreshVendorLiveData() {
+    await loadVendorStats();
+    await loadVendorProducts();
+    await loadVendorOrders();
+    await updateEarningsAndNotifications();
+}
+
+function setupVendorLiveRefresh() {
+    window.addEventListener('focus', () => {
+        refreshVendorLiveData().catch(error => {
+            console.warn('Vendor live refresh failed:', error.message || error);
+        });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            refreshVendorLiveData().catch(error => {
+                console.warn('Vendor live refresh failed:', error.message || error);
+            });
+        }
+    });
+
+    window.addEventListener('orderPlaced', () => {
+        refreshVendorLiveData().catch(error => {
+            console.warn('Vendor refresh after order placed failed:', error.message || error);
+        });
+    });
+
+    setInterval(() => {
+        refreshVendorLiveData().catch(error => {
+            console.warn('Scheduled vendor refresh failed:', error.message || error);
+        });
+    }, 30 * 1000);
 }
 
 function displayVendorInfo() {
@@ -15,9 +48,47 @@ function displayVendorInfo() {
     document.querySelectorAll('.store-name').forEach(el => el.textContent = user.storeName || user.name);
 }
 
-function loadVendorStats() {
+async function loadVendorStats() {
     const user = getCurrentUser();
     if (!user) return;
+
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getVendorDashboard();
+            const overview = response.overview || {};
+            const trend = Array.isArray(overview.trend) ? overview.trend : [];
+            const revenueByDay = trend.map(item => ({ day: item.day, value: Number(item.earnings || 0) }));
+            const ordersByDay = trend.map(item => ({ day: item.day, value: Number(item.orders || 0) }));
+            const totalProducts = Number(overview.totalProducts || 0);
+            const totalOrders = Number(overview.totalOrders || 0);
+            const totalEarnings = Number(overview.totalEarnings || 0);
+            const pendingOrders = Number(overview.pendingItems || 0);
+            const pendingPayouts = Number(overview.pendingPayouts || 0);
+            const todayRevenue = revenueByDay.slice(-1)[0]?.value || 0;
+
+            updateStatCard('totalProducts', totalProducts);
+            updateStatCard('totalOrders', totalOrders);
+            updateStatCard('totalRevenue', formatPrice(todayRevenue));
+            updateStatCard('pendingOrders', pendingOrders);
+            updateStatCard('totalEarnings', formatPrice(totalEarnings));
+            updateStatCard('pendingPayouts', formatPrice(pendingPayouts));
+
+            updateGrowth('totalProductsGrowth', totalProducts, Math.max(totalProducts - 1, 0));
+            updateGrowth('totalOrdersGrowth', totalOrders, getValueForDay(ordersByDay, -2));
+            updateGrowth('totalRevenueGrowth', todayRevenue, getValueForDay(revenueByDay, -2));
+            updateGrowth('pendingOrdersGrowth', pendingOrders, Math.max(pendingOrders - 1, 0));
+
+            drawSparkline('sparkTotalProducts', createSequence(totalProducts));
+            drawSparkline('sparkTotalOrders', ordersByDay.map(d => d.value));
+            drawSparkline('sparkRevenue', revenueByDay.map(d => d.value));
+            drawSparkline('sparkPending', createSequence(pendingOrders));
+            renderSalesChart(revenueByDay.length ? revenueByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }], ordersByDay.length ? ordersByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }]);
+            renderOrdersRevenueChart(ordersByDay.length ? ordersByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }], revenueByDay.length ? revenueByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }]);
+            return;
+        } catch (error) {
+            console.warn('Vendor API stats failed, using local data:', error.message);
+        }
+    }
 
     const vendorProducts = typeof getProductsByVendor === 'function' ? getProductsByVendor(user.id) : [];
     const allOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
@@ -266,10 +337,42 @@ function detectTrend(values) {
     return lastAvg > first ? 'up' : (lastAvg < first ? 'down' : 'stable');
 }
 
-function updateEarningsAndNotifications() {
+async function updateEarningsAndNotifications() {
     const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
     const user = getCurrentUser();
     if (!user) return;
+
+    if (window.MultiMartAPI) {
+        try {
+            const [dashboardResponse, payoutResponse] = await Promise.all([
+                window.MultiMartAPI.getVendorDashboard(),
+                window.MultiMartAPI.getVendorPayouts().catch(() => ({ payouts: [], summary: {} }))
+            ]);
+            const overview = dashboardResponse.overview || {};
+            const payoutSummary = payoutResponse.summary || {};
+            document.getElementById('totalEarnings').textContent = formatPrice(Number(overview.totalEarnings || 0));
+            document.getElementById('pendingPayouts').textContent = formatPrice(Number(payoutSummary.pendingPayouts || overview.pendingPayouts || 0));
+
+            const notifBadge = document.getElementById('notificationCount');
+            if (notifBadge) notifBadge.textContent = Number(overview.pendingItems || 0);
+
+            const notifContainer = document.getElementById('notificationsList');
+            if (notifContainer) {
+                notifContainer.innerHTML = `
+                    <div class="top-product-row">Pending order items: ${Number(overview.pendingItems || 0)}</div>
+                    <div class="top-product-row">Products live on store: ${Number(overview.totalProducts || 0)}</div>
+                    <div class="top-product-row">Withdrawable balance: ${formatPrice(Number(payoutSummary.availableBalance || overview.availableBalance || 0))}</div>
+                    <div class="top-product-row">Total earnings so far: ${formatPrice(Number(overview.totalEarnings || 0))}</div>
+                `;
+            }
+
+            renderVendorPayoutHistory(payoutResponse.payouts || [], payoutSummary);
+            return;
+        } catch (error) {
+            console.warn('Vendor API earnings failed, using local data:', error.message);
+        }
+    }
+
     const vendorOrders = orders.filter(o => (o.items||[]).some(i=>i.vendorId===user.id));
     const totalEarnings = vendorOrders.reduce((sum,o)=>sum + (o.items||[]).reduce((s,i)=>i.vendorId===user.id ? s+i.price*i.quantity : s,0),0);
     const pendingPayouts = vendorOrders.filter(o => ['delivered'].includes(o.status?.toLowerCase())===false).reduce((sum,o)=>sum + (o.items||[]).reduce((s,i)=>i.vendorId===user.id ? s+i.price*i.quantity : s,0),0);
@@ -304,7 +407,55 @@ function updateEarningsAndNotifications() {
     if (notifContainer) notifContainer.innerHTML = notifications.map(n=>`<div class="top-product-row">${n.text}</div>`).join('');
 }
 
-function withdrawPayout(){
+function renderVendorPayoutHistory(payouts, summary = {}) {
+    const container = document.getElementById('payoutHistory');
+    if (!container) return;
+
+    const summaryHtml = `
+        <div class="top-product-row"><span>Withdrawable Balance</span><strong>${formatPrice(Number(summary.availableBalance || 0))}</strong></div>
+        <div class="top-product-row"><span>Already Paid Out</span><strong>${formatPrice(Number(summary.paidOut || 0))}</strong></div>
+    `;
+
+    if (!payouts.length) {
+        container.innerHTML = `${summaryHtml}<p style="margin-top: 12px;">No payout requests yet</p>`;
+        return;
+    }
+
+    container.innerHTML = `
+        ${summaryHtml}
+        <table class="data-table" style="margin-top: 16px;">
+            <thead>
+                <tr><th>Date</th><th>Payout ID</th><th>Amount</th><th>Status</th><th>Paid At</th></tr>
+            </thead>
+            <tbody>
+                ${payouts.map(payout => `
+                    <tr>
+                        <td>${formatDate(payout.created_at)}</td>
+                        <td>#${String(payout.id)}</td>
+                        <td>${formatPrice(Number(payout.amount || 0))}</td>
+                        <td><span class="badge badge-${getStatusBadgeClass(payout.status)}">${payout.status}</span></td>
+                        <td>${payout.paid_at ? formatDate(payout.paid_at) : '-'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+async function withdrawPayout(){
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.requestVendorPayout();
+            showToastSafe(response.message || 'Withdraw request created', 'success');
+            await loadVendorStats();
+            await updateEarningsAndNotifications();
+            return;
+        } catch (error) {
+            showToastSafe(error.message || 'Unable to create withdraw request', 'error');
+            return;
+        }
+    }
+
     alert('Withdraw request created. It will process within 2 business days.');
 }
 
@@ -315,10 +466,22 @@ function updateStatCard(id, value) {
     if (el) el.textContent = value;
 }
 
-function loadVendorProducts() {
+async function loadVendorProducts() {
     const user = getCurrentUser();
-    if (!user || typeof getProductsByVendor !== 'function') return;
-    const products = getProductsByVendor(user.id);
+    if (!user) return;
+    let products = [];
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getVendorProducts();
+            products = response.products || [];
+        } catch (error) {
+            console.warn('Vendor API products failed, using local data:', error.message);
+        }
+    }
+
+    if (!products.length && typeof getProductsByVendor === 'function') {
+        products = getProductsByVendor(user.id);
+    }
     const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
 
     const vendorOrders = orders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
@@ -390,9 +553,25 @@ function closeProductModal() {
     if (modal) modal.classList.remove('active');
 }
 
-function addProduct(productData) {
+async function addProduct(productData) {
     const user = getCurrentUser();
     if (!user) return { success:false, message:'User not found' };
+
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.createVendorProduct({
+                name: productData.name,
+                category: productData.category,
+                description: productData.description,
+                imageUrl: productData.image,
+                price: productData.price,
+                stock: productData.stock
+            });
+            return { success:true, message: response.message || 'Product submitted for approval' };
+        } catch (error) {
+            console.warn('Vendor API product create failed, using local data:', error.message);
+        }
+    }
 
     const products = getAllProducts();   // our DB in main.js
 
@@ -413,7 +592,7 @@ function addProduct(productData) {
 
 
 
-function submitProductForm(event) {
+async function submitProductForm(event) {
     event.preventDefault();
     const form = event.target;
     const editId = form.getAttribute('data-edit-id');
@@ -427,13 +606,13 @@ function submitProductForm(event) {
     };
     if (!productData.name || !productData.price) return showToastSafe
 ('Name and price required','error');
-    const result = editId ? updateProduct(editId, productData) : addProduct(productData);
+    const result = editId ? updateProduct(editId, productData) : await addProduct(productData);
     if (result.success) {
         showToastSafe
 (result.message,'success');
         closeProductModal();
-        loadVendorProducts();
-        loadVendorStats();
+        await loadVendorProducts();
+        await loadVendorStats();
     } else showToastSafe
 (result.message,'error');
 }
@@ -470,12 +649,35 @@ function deleteProductConfirm(productId) {
 
 let vendorOrderFilter = 'all';
 
-function loadVendorOrders() {
+async function loadVendorOrders() {
     const user = getCurrentUser();
-    if (!user || typeof getAllOrders !== 'function') return;
+    if (!user) return;
+
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getVendorOrders();
+            const vendorOrders = (response.orders || []).map(row => ({
+                id: String(row.id),
+                createdAt: row.created_at,
+                customerName: row.customer_name || 'Customer',
+                status: row.order_status,
+                items: [{
+                    productId: row.product_id,
+                    vendorId: user.id,
+                    quantity: Number(row.quantity || 0),
+                    price: Number(row.unit_price || 0)
+                }]
+            }));
+            renderVendorOrders(vendorOrders.filter(order => vendorOrderFilter === 'all' || order.status === vendorOrderFilter));
+            return;
+        } catch (error) {
+            console.warn('Vendor API orders failed, using local data:', error.message);
+        }
+    }
+
+    if (typeof getAllOrders !== 'function') return;
     const allOrders = getAllOrders();
-    const vendorOrders = allOrders
-        .filter(o => (o.items || []).some(i => i.vendorId === user.id));
+    const vendorOrders = allOrders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
 
     renderVendorOrders(vendorOrders.filter(order => vendorOrderFilter === 'all' || order.status === vendorOrderFilter));
 }
@@ -528,6 +730,20 @@ function filterVendorOrders(status) {
 }
 
 function markOrderShipped(orderId) {
+    if (window.MultiMartAPI) {
+        window.MultiMartAPI.updateOrderStatus(orderId, 'shipped')
+            .then(() => {
+                loadVendorOrders();
+                loadVendorStats();
+                updateEarningsAndNotifications();
+                showToastSafe(`Order #${String(orderId).slice(-8)} marked shipped`, 'success');
+            })
+            .catch(error => {
+                alert(error.message || 'Unable to mark order as shipped');
+            });
+        return;
+    }
+
     const order = getAllOrders().find(o => o.id === orderId);
     if (!order) return;
     order.status = 'shipped';

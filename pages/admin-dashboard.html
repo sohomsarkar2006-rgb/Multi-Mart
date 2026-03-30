@@ -92,7 +92,7 @@
                     <div class="stat-icon blue">💰</div>
                     <div class="stat-info">
                         <p class="stat-label">Total Revenue</p>
-                        <h2 class="stat-value">₹124,580</h2>
+                        <h2 class="stat-value" data-stat="totalRevenue">₹124,580</h2>
                         <span class="stat-change positive">+12.5%</span>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                     <div class="stat-icon green">📦</div>
                     <div class="stat-info">
                         <p class="stat-label">Total Orders</p>
-                        <h2 class="stat-value">1,845</h2>
+                        <h2 class="stat-value" data-stat="totalOrders">1,845</h2>
                         <span class="stat-change positive">+8.2%</span>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
                     <div class="stat-icon purple">🏪</div>
                     <div class="stat-info">
                         <p class="stat-label">Active Vendors</p>
-                        <h2 class="stat-value">156</h2>
+                        <h2 class="stat-value" data-stat="activeVendors">156</h2>
                         <span class="stat-change positive">+5</span>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                     <div class="stat-icon orange">👥</div>
                     <div class="stat-info">
                         <p class="stat-label">Total Users</p>
-                        <h2 class="stat-value">8,942</h2>
+                        <h2 class="stat-value" data-stat="totalUsers">8,942</h2>
                         <span class="stat-change positive">+15.3%</span>
                     </div>
                 </div>
@@ -150,7 +150,7 @@
             <!-- Recent Activity -->
             <div class="activity-card">
                 <h3>Recent Activity</h3>
-                <div class="activity-list">
+                <div class="activity-list" id="recentActivityList">
                     <div class="activity-item">
                         <span class="activity-icon">✅</span>
                         <div class="activity-details">
@@ -240,7 +240,7 @@
             <div class="page-header">
                 <h1>Product Approval Panel</h1>
                 <div class="header-actions">
-                    <span class="pending-count">12 Pending Approvals</span>
+                    <span class="pending-count" id="pendingApprovalCount">12 Pending Approvals</span>
                 </div>
             </div>
 
@@ -296,19 +296,19 @@
             <div class="stats-grid-small">
                 <div class="mini-stat">
                     <p>Total Orders</p>
-                    <h3>1,845</h3>
+                    <h3 id="ordersTotalStat">1,845</h3>
                 </div>
                 <div class="mini-stat">
                     <p>Pending</p>
-                    <h3>124</h3>
+                    <h3 id="ordersPendingStat">124</h3>
                 </div>
                 <div class="mini-stat">
                     <p>Processing</p>
-                    <h3>56</h3>
+                    <h3 id="ordersProcessingStat">56</h3>
                 </div>
                 <div class="mini-stat">
                     <p>Refund Requests</p>
-                    <h3>8</h3>
+                    <h3 id="ordersRefundStat">8</h3>
                 </div>
             </div>
 
@@ -363,7 +363,7 @@
                     <h3>Commission Structure</h3>
                     <div class="setting-item">
                         <label>Default Commission Rate (%)</label>
-                        <input type="number" value="15" min="0" max="100">
+                        <input type="number" id="settingsDefaultCommissionRate" value="15" min="0" max="100">
                     </div>
                     <div class="setting-item">
                         <label>Electronics Category (%)</label>
@@ -373,24 +373,24 @@
                         <label>Fashion Category (%)</label>
                         <input type="number" value="18" min="0" max="100">
                     </div>
-                    <button class="btn-primary">Update Commission Rates</button>
+                    <button class="btn-primary" onclick="savePlatformSettings()">Update Commission Rates</button>
                 </div>
 
                 <div class="settings-card">
                     <h3>Payment Schedule</h3>
                     <div class="setting-item">
                         <label>Payout Frequency</label>
-                        <select>
-                            <option>Weekly</option>
-                            <option>Bi-weekly</option>
-                            <option selected>Monthly</option>
+                        <select id="settingsPayoutFrequency">
+                            <option value="weekly">Weekly</option>
+                            <option value="bi-weekly">Bi-weekly</option>
+                            <option value="monthly" selected>Monthly</option>
                         </select>
                     </div>
                     <div class="setting-item">
                         <label>Minimum Payout Amount (₹)</label>
-                        <input type="number" value="100">
+                        <input type="number" id="settingsMinPayoutAmount" value="100">
                     </div>
-                    <button class="btn-primary">Update Payment Settings</button>
+                    <button class="btn-primary" onclick="savePlatformSettings()">Update Payment Settings</button>
                 </div>
             </div>
 
@@ -438,6 +438,25 @@
             <div class="page-header">
                 <h1>User Management</h1>
                 <button class="btn-primary">+ Add User</button>
+            </div>
+
+            <div class="stats-grid-small">
+                <div class="mini-stat">
+                    <p>Total Users</p>
+                    <h3 id="usersTotalStat">0</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Customers</p>
+                    <h3 id="usersCustomerStat">0</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Vendors</p>
+                    <h3 id="usersVendorStat">0</h3>
+                </div>
+                <div class="mini-stat">
+                    <p>Admins</p>
+                    <h3 id="usersAdminStat">0</h3>
+                </div>
             </div>
 
             <div class="filter-bar">
@@ -517,8 +536,8 @@
                     <div class="stat-icon purple">🛍️</div>
                     <div class="stat-info">
                         <p class="stat-label">Conversion Rate</p>
-                        <h2 class="stat-value">3.8%</h2>
-                        <span class="stat-change positive">+0.5%</span>
+                        <h2 class="stat-value" id="analyticsConversionRate">3.8%</h2>
+                        <span class="stat-change positive" id="analyticsConversionRateChange">Live</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -565,7 +584,7 @@
         <section class="content-section" id="complaints">
             <div class="page-header">
                 <h1>Complaint & Dispute Center</h1>
-                <span class="alert-badge">15 Open Cases</span>
+                <span class="alert-badge" id="complaintsOpenCount">15 Open Cases</span>
             </div>
 
             <div class="filter-bar">
@@ -629,15 +648,15 @@
                     <h3>General Settings</h3>
                     <div class="setting-item">
                         <label>Platform Name</label>
-                        <input type="text" value="MultiMart">
+                        <input type="text" id="settingsPlatformName" value="MultiMart">
                     </div>
                     <div class="setting-item">
                         <label>Support Email</label>
-                        <input type="email" value="support@MultiMart.com">
+                        <input type="email" id="settingsSupportEmail" value="support@MultiMart.com">
                     </div>
                     <div class="setting-item">
                         <label>Currency</label>
-                        <select>
+                        <select id="settingsCurrencyCode">
                             <option>INR (₹)</option>
                             <option>EUR (€)</option>
                             <option>GBP (£)</option>
@@ -645,17 +664,17 @@
                     </div>
                     <div class="setting-item">
                         <label>Time Zone</label>
-                        <select>
+                        <select id="settingsTimezoneName">
                             <option>IST</option>
                             <option>EST</option>
                             <option>PST</option>
                         </select>
                     </div>
                     <div class="setting-item checkbox">
-                        <input type="checkbox" id="maintenanceMode">
+                        <input type="checkbox" id="settingsMaintenanceMode">
                         <label for="maintenanceMode">Enable Maintenance Mode</label>
                     </div>
-                    <button class="btn-primary">Save Changes</button>
+                    <button class="btn-primary" onclick="savePlatformSettings()">Save Changes</button>
                 </div>
             </div>
 
@@ -664,17 +683,17 @@
                     <h3>Email Configuration</h3>
                     <div class="setting-item">
                         <label>SMTP Host</label>
-                        <input type="text" placeholder="smtp.example.com">
+                        <input type="text" id="settingsSmtpHost" placeholder="smtp.example.com">
                     </div>
                     <div class="setting-item">
                         <label>SMTP Port</label>
-                        <input type="number" value="587">
+                        <input type="number" id="settingsSmtpPort" value="587">
                     </div>
                     <div class="setting-item checkbox">
-                        <input type="checkbox" id="emailNotifications">
+                        <input type="checkbox" id="settingsEmailNotifications">
                         <label for="emailNotifications">Enable Email Notifications</label>
                     </div>
-                    <button class="btn-primary">Save Email Settings</button>
+                    <button class="btn-primary" onclick="savePlatformSettings()">Save Email Settings</button>
                 </div>
             </div>
 
@@ -682,18 +701,18 @@
                 <div class="settings-card">
                     <h3>Security Settings</h3>
                     <div class="setting-item checkbox">
-                        <input type="checkbox" id="twoFactor" checked>
+                        <input type="checkbox" id="settingsTwoFactorEnabled" checked>
                         <label for="twoFactor">Enable Two-Factor Authentication</label>
                     </div>
                     <div class="setting-item checkbox">
-                        <input type="checkbox" id="loginNotify" checked>
+                        <input type="checkbox" id="settingsLoginNotifications" checked>
                         <label for="loginNotify">Send Login Notifications</label>
                     </div>
                     <div class="setting-item">
                         <label>Session Timeout (minutes)</label>
-                        <input type="number" value="30">
+                        <input type="number" id="settingsSessionTimeoutMinutes" value="30">
                     </div>
-                    <button class="btn-primary">Update Security</button>
+                    <button class="btn-primary" onclick="savePlatformSettings()">Update Security</button>
                 </div>
             </div>
 
@@ -779,8 +798,10 @@
         </div>
     </div>
 
-    <script src="admin-dashboard.js"></script>
-    <script src="../js/main.js"></script>
+    <script src="../js/api.js?v=3"></script>
+    <script src="../js/auth.js?v=3"></script>
+    <script src="admin-dashboard.js?v=3"></script>
+    <script src="../js/main.js?v=3"></script>
 
 </body>
 </html>

@@ -1,0 +1,3 @@
+-- Use the Node seed script instead so bcrypt password hashes are generated correctly.
+-- Command:
+-- npm run seed

@@ -10,7 +10,7 @@
 
 <!-- Promotional Banner -->
 <div class="promo-banner">
-    Free shipping on orders over $75 | Use code STRIPE20 for 20% off your first order
+    Free shipping on orders over ₹75 | Use code STRIPE20 for 20% off your first order
 </div>
 
 <!-- Navbar -->
@@ -25,7 +25,9 @@
 
         <div class="navbar-center">
             <a href="#" class="nav-link" onclick="openSearchModal(event)">Shop</a>
-            <a href="#" class="nav-link" onclick="toggleCategoriesMenu(event)">Categories</a>
+            <a href="#" class="nav-link nav-link-expand" id="categoriesToggle" onclick="toggleCategoriesMenu(event)">
+                Categories <span class="nav-expand-icon">▾</span>
+            </a>
             <a href="#" class="nav-link" onclick="scrollToFeatured(event)">Featured</a>
             <a href="#" class="nav-link">Sale</a>
             <a href="#" class="nav-link">About</a>
@@ -45,6 +47,13 @@
 <!-- Categories Dropdown Menu -->
 <div id="categoriesMenu" class="categories-menu hidden">
     <div class="categories-menu-content">
+        <div class="categories-menu-header">
+            <div>
+                <p class="categories-eyebrow">Browse Faster</p>
+                <h3 class="categories-title">Shop by Category</h3>
+            </div>
+            <button class="categories-close" onclick="closeCategoriesMenu()" aria-label="Close categories menu">✕</button>
+        </div>
         <div class="categories-grid">
             <div class="category-item" onclick="selectCategory('Electronics')">
                 <span class="category-icon">⚡</span>
@@ -105,7 +114,7 @@
             <div class="hero-badge hero-badge-discount">UP TO 40% OFF</div>
             <div class="hero-badge hero-badge-info">
                 <span>✓ Free Shipping</span>
-                Orders over $75
+                Orders over ₹75
             </div>
             <div class="hero-badge hero-badge-returns">
                 <span>♻️ Easy Returns</span>
@@ -125,7 +134,7 @@
         <a href="#" class="view-all-link">View All →</a>
     </div>
     <div class="category-grid">
-        <div class="category-card" style="background: linear-gradient(135deg, rgba(220,38,38,0.9), rgba(220,38,38,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+        <div class="category-card" onclick="jumpToCategory(event, 'Electronics')" style="background: linear-gradient(135deg, rgba(220,38,38,0.9), rgba(220,38,38,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
             <div class="category-card-content">
                 <span class="product-count">48 products</span>
                 <h3 class="category-title">Electronics</h3>
@@ -134,7 +143,7 @@
             </div>
         </div>
 
-        <div class="category-card" style="background: linear-gradient(135deg, rgba(217,119,6,0.9), rgba(217,119,6,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+        <div class="category-card" onclick="jumpToCategory(event, 'Fashion')" style="background: linear-gradient(135deg, rgba(217,119,6,0.9), rgba(217,119,6,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
             <div class="category-card-content">
                 <span class="product-count">86 products</span>
                 <h3 class="category-title">Fashion</h3>
@@ -143,7 +152,7 @@
             </div>
         </div>
 
-        <div class="category-card" style="background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(59,130,246,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
+        <div class="category-card" onclick="jumpToCategory(event, 'Accessories')" style="background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(59,130,246,0.7)), url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e'); background-size: cover; background-position: center;">
             <div class="category-card-content">
                 <span class="product-count">32 products</span>
                 <h3 class="category-title">Accessories</h3>
@@ -182,7 +191,7 @@
         <div>
             <h2 class="section-title">All Products</h2>
         </div>
-        <select class="category-filter" onchange="filterByCategory(this.value)">
+        <select class="category-filter" id="allProductsCategoryFilter" onchange="filterByCategory(this.value)">
             <option value="">All Categories</option>
             <option value="Electronics">Electronics</option>
             <option value="Fashion">Fashion</option>
@@ -199,6 +208,7 @@
 
 <!-- linking js -->
 <script src="../js/main.js"></script>
+<script src="../js/api.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/cart.js"></script>
 <script src="../js/recommend.js"></script>
@@ -303,6 +313,10 @@ function clearSearch() {
 //filter
 
 function filterByCategory(category) {
+    const filter = document.getElementById('allProductsCategoryFilter');
+    if (filter && filter.value !== category) {
+        filter.value = category || '';
+    }
 
     if (!category) {
         loadAllProductsSafe();
@@ -313,6 +327,19 @@ function filterByCategory(category) {
 
     document.getElementById('allProducts').innerHTML =
         list.map(createProductCard).join('');
+}
+
+function jumpToCategory(event, category) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    filterByCategory(category);
+    document.querySelector('.all-products-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
 }
 
 
