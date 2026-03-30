@@ -1,3 +1,4 @@
+// Admin credentials - single admin account for system administration
 const ADMIN_CREDENTIALS = {
     id: "admin_1",
     email: "admin@gmail.com",
@@ -100,7 +101,7 @@ async function login(email, password, role) {
         }
     }
 
-    // Local fallback mode
+    // Local fallback mode - admin uses single credential
     if (role === "admin") {
         if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
             const adminUser = { ...ADMIN_CREDENTIALS };
@@ -115,21 +116,6 @@ async function login(email, password, role) {
                 user: adminUser
             };
         }
-
-        const foundAdmin = USERS_DB.find(u => u.role === "admin" && u.email === email && u.password === password);
-        if (foundAdmin) {
-            localStorage.setItem("session", JSON.stringify(foundAdmin));
-            localStorage.setItem("adminLoggedIn", "true");
-            localStorage.setItem("adminEmail", email);
-            localStorage.setItem("userLoggedIn", "true");
-            localStorage.setItem("userEmail", email);
-            return {
-                success: true,
-                message: authStatusMessage("Admin login successful", backendAvailable),
-                user: foundAdmin
-            };
-        }
-
         return { success: false, message: "Invalid email or password" };
     }
 
@@ -197,7 +183,7 @@ async function register(email, password, confirmPassword, role, name, storeName,
     }
 
     if (role === "admin") {
-        return { success: false, message: "Admin registration is not allowed through this form" };
+        return { success: false, message: "Admin registration is not allowed. Please use the admin login form." };
     }
 
     if (role === "vendor" && (!storeName || !storeAddress)) {
@@ -297,6 +283,14 @@ function getAllUsers() {
         return { success: false, message: "Access denied" };
     }
     return { success: true, users: USERS_DB };
+}
+
+function getAllVendorsData() {
+    let current = getCurrentUser();
+    if (!current || current.role !== "admin") {
+        return [];
+    }
+    return USERS_DB.filter(u => u.role === "vendor");
 }
 
 function deleteUser(userId) {

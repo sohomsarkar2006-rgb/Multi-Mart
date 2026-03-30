@@ -39,6 +39,13 @@ function initAdminDashboard() {
     displayAdminInfo();
     setupNavigation();
     loadAdminDashboard();
+    
+    // Listen for order events to update analytics in real-time
+    window.addEventListener('orderPlaced', () => {
+        console.log('New order detected, refreshing admin analytics...');
+        loadAdminDashboard();
+        loadAnalyticsSection();
+    });
 }
 
 function displayAdminInfo() {
@@ -93,27 +100,57 @@ function loadSectionData(section) {
 }
 
 // ========== DASHBOARD OVERVIEW ==========
-function loadAdminDashboard() {
-    if (typeof getAllProducts !== 'function' || typeof getAllUsers !== 'function') return;
+async function loadAdminDashboard() {
+    let allProducts = [];
+    let allOrders = [];
+    let allUsers = [];
+    let allVendors = [];
     
-    const allProducts = getAllProducts() || [];
-    const allOrders = getAllOrders();
-    const allUsers = (getAllUsers().success ? getAllUsers().users : []);
-    const allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const [productsRes, ordersRes, usersRes, vendorsRes] = await Promise.allSettled([
+                window.MultiMartAPI.getAdminProducts(),
+                window.MultiMartAPI.getAdminOrders(),
+                window.MultiMartAPI.getAdminUsers(),
+                window.MultiMartAPI.getAdminVendors()
+            ]);
+            
+            allProducts = productsRes.status === 'fulfilled' ? (productsRes.value.products || []) : [];
+            allOrders = ordersRes.status === 'fulfilled' ? (ordersRes.value.orders || []) : [];
+            allUsers = usersRes.status === 'fulfilled' ? (usersRes.value.users || []) : [];
+            allVendors = vendorsRes.status === 'fulfilled' ? (vendorsRes.value.vendors || []) : [];
+        } catch (error) {
+            console.warn('API dashboard data failed, using local:', error.message);
+            // Fallback to local
+            allProducts = typeof getAllProducts === 'function' ? getAllProducts() || [] : [];
+            allOrders = getAllOrders();
+            const usersResult = typeof getAllUsers === 'function' ? getAllUsers() : { success: false };
+            allUsers = usersResult.success ? usersResult.users : [];
+            allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+        }
+    } else {
+        // Use local data
+        allProducts = typeof getAllProducts === 'function' ? getAllProducts() || [] : [];
+        allOrders = getAllOrders();
+        const usersResult = typeof getAllUsers === 'function' ? getAllUsers() : { success: false };
+        allUsers = usersResult.success ? usersResult.users : [];
+        allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+    }
     
-    const totalRevenue = allOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const totalRevenue = allOrders.reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
     const totalOrders = allOrders.length;
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+    const pendingOrders = allOrders.filter(o => o.status === 'pending' || o.order_status === 'pending').length;
     
     updateStatCard('totalRevenue', formatPriceSafe(totalRevenue));
     updateStatCard('totalOrders', totalOrders);
     updateStatCard('activeVendors', allVendors.length);
     updateStatCard('totalUsers', allUsers.length);
     
-    loadRevenueChart();
-    loadOrderDistributionChart();
-    loadRecentActivity();
+    loadRevenueChart(allOrders);
+    loadOrderDistributionChart(allOrders);
+    loadRecentActivity(allOrders, allProducts);
 }
 
 function updateStatCard(id, value) {
@@ -121,12 +158,11 @@ function updateStatCard(id, value) {
     if (el) el.textContent = value;
 }
 
-function loadRecentActivity() {
+function loadRecentActivity(allOrders, allProducts) {
     const container = document.getElementById('recentActivityList');
     if (!container) return;
     
-    const allOrders = getAllOrders().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
-    const allProducts = getAllProducts() || [];
+    const recentOrders = allOrders.sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)).slice(0, 10);
     const pendingProducts = allProducts.filter(p => p.status === 'pending');
     
     let html = '';
@@ -135,20 +171,19 @@ function loadRecentActivity() {
         html += `<div class="activity-item"><span class="activity-icon">📦</span><div class="activity-details"><p><strong>Product pending:</strong> ${p.name}</p><span class="activity-time">Pending approval</span></div></div>`;
     });
     
-    allOrders.forEach(o => {
-        const icon = o.status === 'delivered' ? '✅' : '📦';
-        html += `<div class="activity-item"><span class="activity-icon">${icon}</span><div class="activity-details"><p><strong>Order #${o.id?.slice(-8)}:</strong> ${o.customerName || 'Unknown'}</p><span class="activity-time">${new Date(o.createdAt).toLocaleDateString()} — ${formatPriceSafe(o.total)}</span></div></div>`;
+    recentOrders.forEach(o => {
+        const icon = (o.status === 'delivered' || o.order_status === 'delivered') ? '✅' : '📦';
+        html += `<div class="activity-item"><span class="activity-icon">${icon}</span><div class="activity-details"><p><strong>Order #${(o.id || '').slice(-8)}:</strong> ${o.customerName || 'Unknown'}</p><span class="activity-time">${new Date(o.createdAt || o.created_at).toLocaleDateString()} — ${formatPriceSafe(o.total || o.total_amount)}</span></div></div>`;
     });
     
     container.innerHTML = html || '<p>No recent activity</p>';
 }
 
-function loadRevenueChart() {
+function loadRevenueChart(allOrders) {
     const canvas = document.getElementById('revenueCanvas');
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const allOrders = getAllOrders();
     const days = 30;
     const data = {};
     
@@ -157,8 +192,8 @@ function loadRevenueChart() {
         d.setDate(d.getDate() - i);
         const key = d.toISOString().split('T')[0];
         data[key] = (data[key] || 0) + allOrders
-            .filter(o => o.createdAt.startsWith(key))
-            .reduce((s, o) => s + (o.total || 0), 0);
+            .filter(o => (o.createdAt || o.created_at || '').startsWith(key))
+            .reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
     }
     
     const labels = Object.keys(data).reverse();
@@ -167,27 +202,40 @@ function loadRevenueChart() {
     drawLineChart(ctx, labels, revenues, 'Revenue (₹)', '#ff9900');
 }
 
-function loadOrderDistributionChart() {
+function loadOrderDistributionChart(allOrders) {
     const canvas = document.getElementById('orderCanvas');
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const allOrders = getAllOrders();
     const statuses = { pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
     
     allOrders.forEach(o => {
-        if (statuses.hasOwnProperty(o.status)) statuses[o.status]++;
+        const status = o.status || o.order_status;
+        if (statuses.hasOwnProperty(status)) statuses[status]++;
     });
     
     drawPieChart(ctx, Object.keys(statuses), Object.values(statuses));
 }
 
 // ========== VENDORS MANAGEMENT ==========
-function loadVendorsManagement() {
+async function loadVendorsManagement() {
     const container = document.getElementById('vendorsTableBody');
     if (!container) return;
     
-    const allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+    let allVendors = [];
+    
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getAdminVendors();
+            allVendors = response.vendors || [];
+        } catch (error) {
+            console.warn('API failed, using local data:', error.message);
+            allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+        }
+    } else {
+        allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
+    }
     
     if (!allVendors.length) {
         container.innerHTML = '<tr><td colspan="8">No vendors found</td></tr>';
@@ -218,43 +266,109 @@ function loadVendorsManagement() {
     }).join('');
 }
 
-function approveVendor(vendorId) {
-    if (typeof getAllVendorsData !== 'function') return;
-    const vendors = getAllVendorsData();
-    const vendor = vendors.find(v => v.id === vendorId);
-    if (!vendor) return;
+async function approveVendor(vendorId) {
+    let success = false;
     
-    vendor.status = 'approved';
-    vendor.approvedAt = new Date().toISOString();
-    localStorage.setItem('vendors_db', JSON.stringify(vendors));
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            await window.MultiMartAPI.updateAdminVendorStatus(vendorId, 'approved');
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
     
-    showToastSafe('Vendor approved successfully', 'success');
-    loadVendorsManagement();
+    // Fallback to local
+    if (!success && typeof getAllVendorsData === 'function') {
+        const vendors = getAllVendorsData();
+        const vendor = vendors.find(v => v.id === vendorId);
+        if (vendor) {
+            vendor.status = 'approved';
+            vendor.approvedAt = new Date().toISOString();
+            // Update users in localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === vendorId);
+            if (userIndex !== -1) {
+                users[userIndex].status = 'approved';
+                users[userIndex].approvedAt = new Date().toISOString();
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            success = true;
+        }
+    }
+    
+    if (success) {
+        showToastSafe('Vendor approved successfully', 'success');
+        loadVendorsManagement();
+    }
 }
 
-function rejectVendor(vendorId) {
+async function rejectVendor(vendorId) {
     if (!confirm('Ban this vendor?')) return;
-    if (typeof getAllVendorsData !== 'function') return;
     
-    const vendors = getAllVendorsData();
-    const vendor = vendors.find(v => v.id === vendorId);
-    if (!vendor) return;
+    let success = false;
     
-    vendor.status = 'banned';
-    vendor.bannedAt = new Date().toISOString();
-    localStorage.setItem('vendors_db', JSON.stringify(vendors));
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            await window.MultiMartAPI.updateAdminVendorStatus(vendorId, 'banned');
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
     
-    showToastSafe('Vendor banned successfully', 'success');
-    loadVendorsManagement();
+    // Fallback to local
+    if (!success && typeof getAllVendorsData === 'function') {
+        const vendors = getAllVendorsData();
+        const vendor = vendors.find(v => v.id === vendorId);
+        if (vendor) {
+            vendor.status = 'banned';
+            vendor.bannedAt = new Date().toISOString();
+            // Update users in localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === vendorId);
+            if (userIndex !== -1) {
+                users[userIndex].status = 'banned';
+                users[userIndex].bannedAt = new Date().toISOString();
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            success = true;
+        }
+    }
+    
+    if (success) {
+        showToastSafe('Vendor banned successfully', 'success');
+        loadVendorsManagement();
+    }
 }
 
 // ========== PRODUCT APPROVAL ==========
-function loadProductApproval() {
+async function loadProductApproval() {
     const container = document.getElementById('productsTableBody');
-    if (!container || typeof getAllProducts !== 'function') return;
+    if (!container) return;
     
-    const allProducts = getAllProducts();
-    const pendingProducts = allProducts.filter(p => p.status === 'pending');
+    let pendingProducts = [];
+    
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getPendingProducts();
+            pendingProducts = response.products || [];
+        } catch (error) {
+            console.warn('API failed, using local data:', error.message);
+            if (typeof getAllProducts === 'function') {
+                const allProducts = getAllProducts();
+                pendingProducts = allProducts.filter(p => p.status === 'pending');
+            }
+        }
+    } else {
+        if (typeof getAllProducts === 'function') {
+            const allProducts = getAllProducts();
+            pendingProducts = allProducts.filter(p => p.status === 'pending');
+        }
+    }
     
     if (!pendingProducts.length) {
         container.innerHTML = '<tr><td colspan="8">No pending products</td></tr>';
@@ -279,38 +393,85 @@ function loadProductApproval() {
     `).join('');
 }
 
-function approveProduct(productId) {
-    if (typeof getAllProducts !== 'function' || typeof saveProductsToStorage !== 'function') return;
+async function approveProduct(productId) {
+    let success = false;
     
-    const products = getAllProducts();
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            await window.MultiMartAPI.updateAdminProductStatus(productId, 'approved');
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
     
-    product.status = 'approved';
-    product.approvedAt = new Date().toISOString();
-    saveProductsToStorage(products);
+    // Fallback to local
+    if (!success && typeof getAllProducts === 'function' && typeof saveProductsToStorage === 'function') {
+        const products = getAllProducts();
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            product.status = 'approved';
+            product.approvedAt = new Date().toISOString();
+            saveProductsToStorage(products);
+            success = true;
+        }
+    }
     
-    showToastSafe('Product approved successfully', 'success');
-    loadProductApproval();
+    if (success) {
+        showToastSafe('Product approved successfully', 'success');
+        loadProductApproval();
+    }
 }
 
-function rejectProduct(productId) {
+async function rejectProduct(productId) {
     if (!confirm('Reject this product?')) return;
-    if (typeof deleteProduct !== 'function') return;
     
-    const result = deleteProduct(productId);
-    if (result?.success) {
+    let success = false;
+    
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            await window.MultiMartAPI.updateAdminProductStatus(productId, 'rejected');
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
+    
+    // Fallback to local
+    if (!success && typeof deleteProduct === 'function') {
+        const result = deleteProduct(productId);
+        if (result?.success) {
+            success = true;
+        }
+    }
+    
+    if (success) {
         showToastSafe('Product rejected successfully', 'success');
         loadProductApproval();
     }
 }
 
 // ========== ORDERS & REFUNDS MANAGEMENT ==========
-function loadOrdersManagement() {
+async function loadOrdersManagement() {
     const container = document.getElementById('ordersTableBody');
     if (!container) return;
     
-    const allOrders = getAllOrders();
+    let allOrders = [];
+    
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getAdminOrders();
+            allOrders = response.orders || [];
+        } catch (error) {
+            console.warn('API failed, using local data:', error.message);
+            allOrders = getAllOrders();
+        }
+    } else {
+        allOrders = getAllOrders();
+    }
     
     if (!allOrders.length) {
         container.innerHTML = '<tr><td colspan="8">No orders found</td></tr>';
@@ -349,16 +510,34 @@ function getStatusClass(status) {
     return classes[status] || 'default';
 }
 
-function updateOrderStatus(orderId, newStatus) {
-    const order = getAllOrders().find(o => o.id === orderId);
-    if (!order) return;
+async function updateOrderStatus(orderId, newStatus) {
+    let success = false;
     
-    order.status = newStatus;
-    order.updatedAt = new Date().toISOString();
-    saveOrdersToStorage();
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            await window.MultiMartAPI.updateOrderStatus(orderId, newStatus);
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
     
-    showToastSafe('Order status updated', 'success');
-    loadOrdersManagement();
+    // Fallback to local
+    if (!success) {
+        const order = getAllOrders().find(o => o.id === orderId);
+        if (order) {
+            order.status = newStatus;
+            order.updatedAt = new Date().toISOString();
+            saveOrdersToStorage();
+            success = true;
+        }
+    }
+    
+    if (success) {
+        showToastSafe('Order status updated', 'success');
+        loadOrdersManagement();
+    }
 }
 
 
@@ -391,12 +570,30 @@ function loadVendorPayoutTable() {
 }
 
 // ========== USER MANAGEMENT ==========
-function loadUserManagement() {
+async function loadUserManagement() {
     const container = document.getElementById('usersTableBody');
-    if (!container || typeof getAllUsers !== 'function') return;
+    if (!container) return;
     
-    const result = getAllUsers();
-    const users = result.success ? result.users : [];
+    let users = [];
+    
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getAdminUsers();
+            users = response.users || [];
+        } catch (error) {
+            console.warn('API failed, using local data:', error.message);
+            if (typeof getAllUsers === 'function') {
+                const result = getAllUsers();
+                users = result.success ? result.users : [];
+            }
+        }
+    } else {
+        if (typeof getAllUsers === 'function') {
+            const result = getAllUsers();
+            users = result.success ? result.users : [];
+        }
+    }
     
     if (!users.length) {
         container.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
@@ -420,42 +617,184 @@ function loadUserManagement() {
     `).join('');
 }
 
-function banUser(userId) {
+async function banUser(userId) {
     if (!confirm('Ban this user?')) return;
-    if (typeof getAllUsers !== 'function') return;
     
-    const result = getAllUsers();
-    const users = result.users || [];
-    const user = users.find(u => u.id === userId);
+    let success = false;
     
-    if (user) {
-        user.banned = true;
-        localStorage.setItem('users_db', JSON.stringify(users));
+    // Try API first (you'd need to add this endpoint to backend)
+    if (window.MultiMartAPI) {
+        try {
+            // Assuming you add this endpoint to backend
+            await window.MultiMartAPI.updateAdminUserStatus(userId, 'banned');
+            success = true;
+        } catch (error) {
+            console.warn('API failed, using local fallback:', error.message);
+        }
+    }
+    
+    // Fallback to local
+    if (!success && typeof getAllUsers === 'function') {
+        const result = getAllUsers();
+        const users = result.users || [];
+        const user = users.find(u => u.id === userId);
+        
+        if (user) {
+            user.banned = true;
+            // Update users in localStorage
+            const localStorageUsers = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = localStorageUsers.findIndex(u => u.id === userId);
+            if (userIndex !== -1) {
+                localStorageUsers[userIndex].banned = true;
+                localStorage.setItem('users', JSON.stringify(localStorageUsers));
+            }
+            success = true;
+        }
+    }
+    
+    if (success) {
         showToastSafe('User banned successfully', 'success');
         loadUserManagement();
     }
 }
 
 // ========== ANALYTICS SECTION ==========
-function loadAnalyticsSection() {
-    loadAnalyticsCharts();
-    loadTopMetrics();
-}
-
-function loadAnalyticsCharts() {
-    loadVendorPerformanceChart();
-    loadCategoryPerformanceChart();
-    loadMonthlyTrendsChart();
-}
-
-function loadVendorPerformanceChart() {
-    const allVendors = typeof getAllVendorsData === 'function' ? getAllVendorsData() : [];
-    const allOrders = getAllOrders();
+async function loadAnalyticsSection() {
+    let allProducts = [];
+    let allOrders = [];
+    let allUsers = [];
+    let allVendors = [];
     
-    const vendorData = allVendors.slice(0, 5).map(v => {
-        const revenue = allOrders
+    // Try API first
+    if (window.MultiMartAPI) {
+        try {
+            const [productsRes, ordersRes, usersRes, vendorsRes, analyticsRes] = await Promise.allSettled([
+                window.MultiMartAPI.getAdminProducts(),
+                window.MultiMartAPI.getAdminOrders(),
+                window.MultiMartAPI.getAdminUsers(),
+                window.MultiMartAPI.getAdminVendors(),
+                window.MultiMartAPI.getAdminAnalytics()
+            ]);
+            
+            allProducts = productsRes.status === 'fulfilled' ? (productsRes.value.products || []) : [];
+            allOrders = ordersRes.status === 'fulfilled' ? (ordersRes.value.orders || []) : [];
+            allUsers = usersRes.status === 'fulfilled' ? (usersRes.value.users || []) : [];
+            allVendors = vendorsRes.status === 'fulfilled' ? (vendorsRes.value.vendors || []) : [];
+            
+            // If analytics API has data, use it
+            if (analyticsRes.status === 'fulfilled' && analyticsRes.value.analytics) {
+                renderAnalyticsFromAPI(analyticsRes.value.analytics);
+                return;
+            }
+        } catch (error) {
+            console.warn('Analytics API failed, using local calculation:', error.message);
+        }
+    }
+    
+    // Fallback to local calculation
+    allProducts = allProducts.length || (typeof getAllProducts === 'function' ? getAllProducts() || [] : []);
+    allOrders = allOrders.length || getAllOrders();
+    allUsers = allUsers.length || (typeof getAllUsers === 'function' ? (getAllUsers().success ? getAllUsers().users : []) : []);
+    allVendors = allVendors.length || (typeof getAllVendorsData === 'function' ? getAllVendorsData() : []);
+    
+    renderAnalyticsFromLocal(allProducts, allOrders, allUsers, allVendors);
+}
+
+function renderAnalyticsFromAPI(analytics) {
+    // Use API-provided analytics data
+    const container = document.querySelector('[data-section="analytics"]') || document.getElementById('analytics');
+    if (!container) return;
+    
+    const metricsContainer = container.querySelector('.metrics-container');
+    if (metricsContainer && analytics.metrics) {
+        metricsContainer.innerHTML = `
+        <h3>Platform Metrics</h3>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Total Revenue</h4>
+                <p class="metric-value">${formatPriceSafe(analytics.metrics.totalRevenue || 0)}</p>
+            </div>
+            <div class="metric-card">
+                <h4>Total Orders</h4>
+                <p class="metric-value">${analytics.metrics.totalOrders || 0}</p>
+            </div>
+            <div class="metric-card">
+                <h4>Total Products</h4>
+                <p class="metric-value">${analytics.metrics.totalProducts || 0}</p>
+            </div>
+            <div class="metric-card">
+                <h4>Active Users</h4>
+                <p class="metric-value">${analytics.metrics.activeUsers || 0}</p>
+            </div>
+        </div>
+        `;
+    }
+    
+    // Load charts with API data if available
+    if (analytics.charts) {
+        loadVendorPerformanceChart(analytics.charts.vendorPerformance || [], allOrders);
+        loadCategoryPerformanceChart(analytics.charts.categoryPerformance || {}, allOrders);
+        loadMonthlyTrendsChart(analytics.charts.monthlyTrends || []);
+    }
+}
+
+function renderAnalyticsFromLocal(allProducts, allOrders, allUsers, allVendors) {
+    const totalRevenue = allOrders.reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
+    const totalOrders = allOrders.length;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    const topProducts = allProducts.slice(0, 5).map(p => ({
+        name: p.name,
+        orders: allOrders.filter(o => o.items?.some(item => item.productId === p.id)).length
+    }));
+    
+    const html = `
+    <h3>Platform Metrics</h3>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h4>Total Revenue</h4>
+            <p class="metric-value">${formatPriceSafe(totalRevenue)}</p>
+        </div>
+        <div class="metric-card">
+            <h4>Total Orders</h4>
+            <p class="metric-value">${totalOrders}</p>
+        </div>
+        <div class="metric-card">
+            <h4>Total Products</h4>
+            <p class="metric-value">${allProducts.length}</p>
+        </div>
+        <div class="metric-card">
+            <h4>Active Users</h4>
+            <p class="metric-value">${allUsers.filter(u => !u.banned).length}</p>
+        </div>
+        <div class="metric-card">
+            <h4>Avg Order Value</h4>
+            <p class="metric-value">${formatPriceSafe(avgOrderValue)}</p>
+        </div>
+        <div class="metric-card">
+            <h4>Top Product</h4>
+            <p class="metric-value">${topProducts[0]?.name || 'N/A'}</p>
+        </div>
+    </div>
+    `;
+    
+    const container = document.querySelector('[data-section="analytics"]') || document.getElementById('analytics');
+    const metricsContainer = container?.querySelector('.metrics-container');
+    if (metricsContainer) metricsContainer.innerHTML = html;
+    
+    loadVendorPerformanceChart(allVendors, allOrders);
+    loadCategoryPerformanceChart(allProducts, allOrders);
+    loadMonthlyTrendsChart(allOrders);
+}
+
+function loadVendorPerformanceChart(allVendors, allOrders = []) {
+    const vendors = allVendors || [];
+    const orders = allOrders || getAllOrders();
+    
+    const vendorData = vendors.slice(0, 5).map(v => {
+        const revenue = orders
             .filter(o => o.items?.some(item => item.vendorId === v.id))
-            .reduce((s, o) => s + (o.total || 0), 0);
+            .reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
         return { name: v.storeName || v.name, revenue };
     });
     
@@ -470,15 +809,15 @@ function loadVendorPerformanceChart() {
     }
 }
 
-function loadCategoryPerformanceChart() {
-    const allProducts = getAllProducts() || [];
-    const allOrders = getAllOrders();
+function loadCategoryPerformanceChart(allProducts, allOrders = []) {
+    const products = allProducts || getAllProducts() || [];
+    const orders = allOrders || getAllOrders();
     
     const categories = {};
-    allProducts.forEach(p => {
+    products.forEach(p => {
         if (!categories[p.category]) categories[p.category] = 0;
-        const productOrders = allOrders.filter(o => o.items?.some(item => item.productId === p.id));
-        categories[p.category] += productOrders.reduce((s, o) => s + (o.total || 0), 0);
+        const productOrders = orders.filter(o => o.items?.some(item => item.productId === p.id));
+        categories[p.category] += productOrders.reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
     });
     
     const canvas = document.getElementById('categoryPerformanceCanvas');
@@ -492,17 +831,17 @@ function loadCategoryPerformanceChart() {
     }
 }
 
-function loadMonthlyTrendsChart() {
-    const allOrders = getAllOrders();
+function loadMonthlyTrendsChart(allOrders = []) {
+    const orders = allOrders || getAllOrders();
     const months = {};
     
     for (let i = 0; i < 12; i++) {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         const monthKey = d.toISOString().slice(0, 7);
-        months[monthKey] = (months[monthKey] || 0) + allOrders
-            .filter(o => o.createdAt.startsWith(monthKey))
-            .reduce((s, o) => s + (o.total || 0), 0);
+        months[monthKey] = (months[monthKey] || 0) + orders
+            .filter(o => (o.createdAt || o.created_at || '').startsWith(monthKey))
+            .reduce((s, o) => s + (o.total || o.total_amount || 0), 0);
     }
     
     const canvas = document.getElementById('monthlyTrendsCanvas');
@@ -511,51 +850,6 @@ function loadMonthlyTrendsChart() {
         const labels = Object.keys(months).reverse();
         drawLineChart(ctx, labels, labels.map(k => months[k]), 'Monthly Revenue (₹)', '#ff9900');
     }
-}
-
-function loadTopMetrics() {
-    const allProducts = getAllProducts() || [];
-    const allOrders = getAllOrders();
-    const allUsers = (typeof getAllUsers === 'function' && getAllUsers().success) ? getAllUsers().users : [];
-    
-    const topProducts = allProducts.slice(0, 5).map(p => ({
-        name: p.name,
-        orders: allOrders.filter(o => o.items?.some(item => item.productId === p.id)).length
-    }));
-    
-    const html = `
-    <h3>Platform Metrics</h3>
-    <div class="metrics-grid">
-        <div class="metric-card">
-            <h4>Total Revenue</h4>
-            <p class="metric-value">${formatPriceSafe(allOrders.reduce((s, o) => s + (o.total || 0), 0))}</p>
-        </div>
-        <div class="metric-card">
-            <h4>Total Orders</h4>
-            <p class="metric-value">${allOrders.length}</p>
-        </div>
-        <div class="metric-card">
-            <h4>Total Products</h4>
-            <p class="metric-value">${allProducts.length}</p>
-        </div>
-        <div class="metric-card">
-            <h4>Active Users</h4>
-            <p class="metric-value">${allUsers.filter(u => !u.banned).length}</p>
-        </div>
-        <div class="metric-card">
-            <h4>Avg Order Value</h4>
-            <p class="metric-value">${formatPriceSafe(allOrders.length > 0 ? allOrders.reduce((s, o) => s + (o.total || 0), 0) / allOrders.length : 0)}</p>
-        </div>
-        <div class="metric-card">
-            <h4>Top Product</h4>
-            <p class="metric-value">${topProducts[0]?.name || 'N/A'}</p>
-        </div>
-    </div>
-    `;
-    
-    const container = document.querySelector('[data-section="analytics"]') || document.getElementById('analytics');
-    const metricsContainer = container?.querySelector('.metrics-container');
-    if (metricsContainer) metricsContainer.innerHTML = html;
 }
 
 // ========== COMPLAINTS & DISPUTES ==========

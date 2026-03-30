@@ -35,7 +35,10 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// Mount all routes under /api
 app.use("/api", routes);
+app.use("/api/public", routes);
+
 app.use(notFound);
 app.use(errorHandler);
 

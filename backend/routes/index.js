@@ -5,13 +5,16 @@ const productRoutes = require("./product.routes");
 const orderRoutes = require("./order.routes");
 const dashboardRoutes = require("./dashboard.routes");
 const adminRoutes = require("./admin.routes");
+const publicRoutes = require("./public.routes");
 
 const router = express.Router();
 
-router.use("/auth", authRoutes);
-router.use("/products", productRoutes);
-router.use("/orders", orderRoutes);
-router.use("/dashboard", dashboardRoutes);
-router.use("/admin", adminRoutes);
+// Mount all routes under /api
+router.use("/api/auth", authRoutes);
+router.use("/api/products", productRoutes);
+router.use("/api/orders", orderRoutes);
+router.use("/api/dashboard", dashboardRoutes);
+router.use("/api/admin", adminRoutes);
+router.use("/api/public", publicRoutes);
 
 module.exports = router;

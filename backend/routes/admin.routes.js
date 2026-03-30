@@ -14,11 +14,16 @@ router.get("/products", AdminController.listProducts);
 router.get("/products/pending", AdminController.listPendingProducts);
 router.patch("/products/:productId/status", AdminController.updateProductStatus);
 router.get("/users", AdminController.listUsers);
+router.patch("/users/:userId/status", AdminController.updateUserStatus);
 router.get("/orders", AdminController.listOrders);
 router.get("/complaints", AdminController.listComplaints);
 router.patch("/complaints/:complaintId/status", AdminController.updateComplaintStatus);
 router.get("/analytics", AdminController.getAnalytics);
 router.get("/settings", AdminController.getSettings);
 router.patch("/settings", AdminController.updateSettings);
+
+// Public settings endpoints (no auth required)
+router.get("/settings/public", AdminController.getPublicSettings);
+router.get("/settings/contact", AdminController.getContactInfo);
 
 module.exports = router;

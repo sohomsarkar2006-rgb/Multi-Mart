@@ -195,10 +195,18 @@ window.MultiMartAPI = {
     });
   },
 
-  async updateOrderStatus(orderId, status) {
-    return this.request(`/orders/${orderId}/status`, {
+  async updateAdminUserStatus(userId, status) {
+    return this.request(`/admin/users/${userId}/status`, {
       method: "PATCH",
       body: { status }
     });
+  },
+
+  async getPublicSettings() {
+    return this.request("/public/settings/public");
+  },
+
+  async getContactInfo() {
+    return this.request("/public/settings/contact");
   }
 };

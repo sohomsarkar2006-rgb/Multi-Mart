@@ -353,6 +353,83 @@ function handleUserLogout() {
 }
 </script>
 
+<!-- Footer -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <div class="footer-logo">
+                <h3>⚡ MultiMart</h3>
+                <p>Discover curated collections of premium products from multiple vendors in one marketplace.</p>
+            </div>
+            <div class="social-links">
+                <a href="#" class="social-icon" title="Instagram">📷</a>
+                <a href="#" class="social-icon" title="Facebook">📘</a>
+                <a href="#" class="social-icon" title="Pinterest">📌</a>
+                <a href="#" class="social-icon" title="Twitter">🐦</a>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <h4>Shop</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="filterByCategory('Electronics')">Electronics</a></li>
+                <li><a href="#" onclick="filterByCategory('Fashion')">Fashion</a></li>
+                <li><a href="#" onclick="filterByCategory('Accessories')">Accessories</a></li>
+                <li><a href="#" onclick="filterByCategory('Home & Garden')">Home & Garden</a></li>
+                <li><a href="#" onclick="filterByCategory('Sports')">Sports</a></li>
+                <li><a href="#" onclick="filterByCategory('Books')">Books</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Help</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="showFAQ()">FAQ</a></li>
+                <li><a href="#" onclick="showShippingInfo()">Shipping & Returns</a></li>
+                <li><a href="#" onclick="showSizeGuide()">Size Guide</a></li>
+                <li><a href="#" onclick="showContact()">Contact Us</a></li>
+                <li><a href="#" onclick="showTrackOrder()">Track Order</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>About</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="showAbout()">Our Story</a></li>
+                <li><a href="#" onclick="showVendors()">Become a Vendor</a></li>
+                <li><a href="#" onclick="showCareers()">Careers</a></li>
+                <li><a href="#" onclick="showPress()">Press</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section newsletter">
+            <h4>Join Our Newsletter</h4>
+            <p>Get 15% off your first order and stay updated on new arrivals.</p>
+            <div class="newsletter-form">
+                <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+                <button type="button" onclick="subscribeNewsletter()" class="newsletter-btn">Subscribe</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="footer-bottom-content">
+            <div class="copyright">
+                <p>© 2026 MultiMart. All rights reserved.</p>
+                <div class="legal-links">
+                    <a href="#" onclick="showPrivacy()">Privacy</a>
+                    <a href="#" onclick="showTerms()">Terms</a>
+                </div>
+            </div>
+            <div class="payment-methods">
+                <span class="payment-icon" title="Visa">💳</span>
+                <span class="payment-icon" title="Mastercard">💳</span>
+                <span class="payment-icon" title="Amex">💳</span>
+                <span class="payment-icon" title="PayPal">🅿</span>
+            </div>
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>

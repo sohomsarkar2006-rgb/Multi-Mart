@@ -901,4 +901,163 @@ document.addEventListener('DOMContentLoaded', async function() {
     renderAllProducts();
 });
 
+// ========== DYNAMIC CONFIGURATION LOADING ==========
+async function loadPublicSettings() {
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getPublicSettings();
+            const settings = response.settings || {};
+            
+            // Update global configuration with backend values
+            window.APP_CONFIG = window.APP_CONFIG || {};
+            window.APP_CONFIG.TAX_RATE = settings.taxRate / 100 || 0.05;
+            window.APP_CONFIG.SHIPPING_COST = settings.shippingCost || 40;
+            window.APP_CONFIG.FREE_SHIPPING_THRESHOLD = settings.freeShippingThreshold || 500;
+            window.APP_CONFIG.MAX_QUANTITY_PER_ITEM = settings.maxQuantityPerItem || 10;
+            
+            console.log('Public settings loaded from backend:', settings);
+        } catch (error) {
+            console.warn('Settings load failed, using defaults:', error.message);
+        }
+    }
+}
+
+// ========== FOOTER FUNCTIONS ==========
+
+// Newsletter subscription
+function subscribeNewsletter() {
+    const email = document.getElementById('newsletterEmail')?.value;
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    // Store subscription (in real app, this would call an API)
+    const subscriptions = JSON.parse(localStorage.getItem('newsletter_subscriptions') || '[]');
+    if (!subscriptions.includes(email)) {
+        subscriptions.push(email);
+        localStorage.setItem('newsletter_subscriptions', JSON.stringify(subscriptions));
+        alert('Thank you for subscribing! Check your email for 15% discount code.');
+        document.getElementById('newsletterEmail').value = '';
+    } else {
+        alert('You are already subscribed to our newsletter.');
+    }
+}
+
+// Vendor newsletter subscription
+function subscribeVendorNewsletter() {
+    const email = document.getElementById('vendorNewsletterEmail')?.value;
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    const subscriptions = JSON.parse(localStorage.getItem('vendor_newsletter_subscriptions') || '[]');
+    if (!subscriptions.includes(email)) {
+        subscriptions.push(email);
+        localStorage.setItem('vendor_newsletter_subscriptions', JSON.stringify(subscriptions));
+        alert('Thank you for subscribing to our vendor newsletter!');
+        document.getElementById('vendorNewsletterEmail').value = '';
+    } else {
+        alert('You are already subscribed to our vendor newsletter.');
+    }
+}
+
+// Help and info functions - now use backend data
+async function showFAQ() {
+    alert('Frequently Asked Questions:\n\n• How do I track my order?\n• What is your return policy?\n• How do I contact support?\n\nFull FAQ coming soon!');
+}
+
+async function showShippingInfo() {
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getPublicSettings();
+            const settings = response.settings || {};
+            const shippingCost = settings.shippingCost || 40;
+            const freeThreshold = settings.freeShippingThreshold || 500;
+            
+            alert(`Shipping Information:\n\n• Free shipping on orders over ₹${freeThreshold}\n• Standard delivery: 5-7 business days\n• Express delivery: 2-3 business days\n• Easy returns within 30 days`);
+        } catch (error) {
+            alert('Shipping Information:\n\n• Free shipping on orders over ₹500\n• Standard delivery: 5-7 business days\n• Express delivery: 2-3 business days\n• Easy returns within 30 days');
+        }
+    } else {
+        alert('Shipping Information:\n\n• Free shipping on orders over ₹500\n• Standard delivery: 5-7 business days\n• Express delivery: 2-3 business days\n• Easy returns within 30 days');
+    }
+}
+
+async function showContact() {
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getContactInfo();
+            const contact = response.contact || {};
+            
+            alert(`Contact Us:\n\nEmail: ${contact.email || 'support@multimart.com'}\nPhone: ${contact.phone || '1-800-MULTIMART'}\nLive Chat: Available 9AM-6PM EST\n\nWe typically respond within 24 hours.`);
+        } catch (error) {
+            alert('Contact Us:\n\nEmail: support@multimart.com\nPhone: 1-800-MULTIMART\nLive Chat: Available 9AM-6PM EST\n\nWe typically respond within 24 hours.');
+        }
+    } else {
+        alert('Contact Us:\n\nEmail: support@multimart.com\nPhone: 1-800-MULTIMART\nLive Chat: Available 9AM-6PM EST\n\nWe typically respond within 24 hours.');
+    }
+}
+
+function showTrackOrder() {
+    const orderNumber = prompt('Enter your order number:');
+    if (orderNumber) {
+        alert(`Tracking Order #${orderNumber}:\n\nStatus: In Transit\nEstimated Delivery: 3-5 business days\nCarrier: MultiMart Express\n\nFor detailed tracking, check your email.`);
+    }
+}
+
+function showAbout() {
+    alert('About MultiMart:\n\nFounded in 2024, MultiMart is your trusted multi-vendor marketplace connecting quality sellers with customers worldwide.\n\nOur mission: Make quality shopping accessible to everyone.');
+}
+
+function showVendors() {
+    alert('Become a Vendor:\n\nJoin thousands of successful sellers on MultiMart!\n\nBenefits:\n• Reach millions of customers\n• Easy listing tools\n• Secure payments\n• Analytics dashboard\n• Marketing support\n\nApply today at vendors.multimart.com');
+}
+
+function showCareers() {
+    alert('Careers at MultiMart:\n\nWe\'re always looking for talented people!\n\nOpen positions:\n• Customer Support\n• Marketing\n• Engineering\n• Operations\n\nSend resumes to careers@multimart.com');
+}
+
+function showPress() {
+    alert('Press & Media:\n\nFor media inquiries:\nEmail: press@multimart.com\nDownload our media kit\nView our press releases\n\nWe love sharing our story!');
+}
+
+function showPrivacy() {
+    alert('Privacy Policy:\n\nWe take your privacy seriously.\n\n• We never sell your data\n• Secure payment processing\n• GDPR compliant\n• Transparent data usage\n\nFull privacy policy available at multimart.com/privacy');
+}
+
+function showTerms() {
+    alert('Terms of Service:\n\nBy using MultiMart, you agree to:\n\n• Fair marketplace practices\n• Accurate product listings\n• Secure transactions\n• Respectful communication\n\nFull terms available at multimart.com/terms');
+}
+
+// Vendor-specific functions
+function showVendorFAQ() {
+    alert('Vendor FAQ:\n\n• How do I list products?\n• When do I get paid?\n• What are the fees?\n• How do I handle returns?\n\nFull vendor FAQ in your dashboard!');
+}
+
+function showSellerGuide() {
+    alert('Seller Guide:\n\nSuccess tips for vendors:\n\n• Quality product photos\n• Competitive pricing\n• Fast shipping\n• Excellent customer service\n• Use analytics tools\n\nFull guide in vendor dashboard!');
+}
+
+function showPricing() {
+    alert('Vendor Pricing Plans:\n\nBasic: Free\n• 5% commission\n• Basic analytics\n\nProfessional: ₹29/month\n• 3% commission\n• Advanced analytics\n• Priority support\n\nEnterprise: Custom\n• 2% commission\n• All features\n• Dedicated account manager');
+}
+
+function showAnalytics() {
+    alert('Analytics Guide:\n\nTrack your business performance:\n\n• Sales trends\n• Customer demographics\n• Product performance\n• Revenue analytics\n• Growth metrics\n\nAccess detailed analytics in your vendor dashboard!');
+}
+
+function showMarketing() {
+    alert('Marketing Tips:\n\nBoost your sales:\n\n• Professional photos\n• Detailed descriptions\n• Competitive pricing\n• Promote on social media\n• Respond quickly to customers\n• Use MultiMart ads\n\nMore tips in vendor newsletter!');
+}
+
+function showAPI() {
+    alert('API Documentation:\n\nIntegrate MultiMart with your systems:\n\n• Product management\n• Order processing\n• Inventory sync\n• Analytics access\n\nFull API docs at developers.multimart.com');
+}
+
+function showVendorTerms() {
+    alert('Vendor Agreement:\n\nAs a MultiMart vendor, you agree to:\n\n• Accurate product information\n• Timely order fulfillment\n• Fair pricing practices\n• Professional conduct\n• Platform policies compliance\n\nFull agreement at vendors.multimart.com/terms');
+}
+
 

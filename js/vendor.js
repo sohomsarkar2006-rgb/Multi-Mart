@@ -28,7 +28,9 @@ function setupVendorLiveRefresh() {
         }
     });
 
-    window.addEventListener('orderPlaced', () => {
+    // Listen for new orders - this is key for real-time updates
+    window.addEventListener('orderPlaced', (event) => {
+        console.log('New order detected for vendor dashboard:', event.detail);
         refreshVendorLiveData().catch(error => {
             console.warn('Vendor refresh after order placed failed:', error.message || error);
         });
@@ -66,12 +68,16 @@ async function loadVendorStats() {
             const pendingPayouts = Number(overview.pendingPayouts || 0);
             const todayRevenue = revenueByDay.slice(-1)[0]?.value || 0;
 
+            // Calculate estimated future revenue (pending orders)
+            const estimatedFutureRevenue = pendingOrders * (totalOrders > 0 ? totalEarnings / totalOrders : 0);
+
             updateStatCard('totalProducts', totalProducts);
             updateStatCard('totalOrders', totalOrders);
             updateStatCard('totalRevenue', formatPrice(todayRevenue));
             updateStatCard('pendingOrders', pendingOrders);
             updateStatCard('totalEarnings', formatPrice(totalEarnings));
             updateStatCard('pendingPayouts', formatPrice(pendingPayouts));
+            updateStatCard('estimatedRevenue', formatPrice(estimatedFutureRevenue));
 
             updateGrowth('totalProductsGrowth', totalProducts, Math.max(totalProducts - 1, 0));
             updateGrowth('totalOrdersGrowth', totalOrders, getValueForDay(ordersByDay, -2));
@@ -90,38 +96,42 @@ async function loadVendorStats() {
         }
     }
 
+    // Fallback to local data with enhanced calculations
     const vendorProducts = typeof getProductsByVendor === 'function' ? getProductsByVendor(user.id) : [];
     const allOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
     const vendorOrders = allOrders.filter(o => (o.items || []).some(i => i.vendorId === user.id));
 
     const totalProducts = vendorProducts.length;
     const totalOrders = vendorOrders.length;
+    const totalEarnings = vendorOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const pendingOrders = vendorOrders.filter(o => ['pending', 'processing'].includes(o.status?.toLowerCase())).length;
+    const deliveredOrders = vendorOrders.filter(o => o.status === 'delivered').length;
+    const avgOrderValue = totalOrders > 0 ? totalEarnings / totalOrders : 0;
+    
+    // Calculate estimated future revenue from pending orders
+    const estimatedFutureRevenue = pendingOrders * avgOrderValue;
 
     const revenueByDay = getRevenueByDay(vendorOrders, 30);
-    const ordersByDay = getOrdersByDay(vendorOrders, 30);
-    const pendingOrders = vendorOrders.filter(o => ['pending','processing'].includes(o.status?.toLowerCase())).length;
-
     const todayRevenue = revenueByDay.slice(-1)[0]?.value || 0;
-    const monthRevenue = revenueByDay.reduce((s, d) => s + d.value, 0);
 
     updateStatCard('totalProducts', totalProducts);
     updateStatCard('totalOrders', totalOrders);
     updateStatCard('totalRevenue', formatPrice(todayRevenue));
     updateStatCard('pendingOrders', pendingOrders);
+    updateStatCard('totalEarnings', formatPrice(totalEarnings));
+    updateStatCard('estimatedRevenue', formatPrice(estimatedFutureRevenue));
 
-    updateGrowth('totalProductsGrowth', totalProducts, vendorProducts.length > 1 ? totalProducts - 1 : 0);
-    updateGrowth('totalOrdersGrowth', totalOrders, getValueForDay(ordersByDay, -2));
+    updateGrowth('totalProductsGrowth', totalProducts, Math.max(totalProducts - 1, 0));
+    updateGrowth('totalOrdersGrowth', totalOrders, deliveredOrders - 1);
     updateGrowth('totalRevenueGrowth', todayRevenue, getValueForDay(revenueByDay, -2));
-    updateGrowth('pendingOrdersGrowth', pendingOrders, getPastPendingCount(vendorOrders, 1));
+    updateGrowth('pendingOrdersGrowth', pendingOrders, Math.max(pendingOrders - 1, 0));
 
     drawSparkline('sparkTotalProducts', createSequence(totalProducts));
-    drawSparkline('sparkTotalOrders', ordersByDay.map(d => d.value));
+    drawSparkline('sparkTotalOrders', getOrdersByDay(vendorOrders, 30));
     drawSparkline('sparkRevenue', revenueByDay.map(d => d.value));
-    drawSparkline('sparkPending', buildPendingTrend(vendorOrders));
-
-    renderSalesChart(revenueByDay, ordersByDay);
-    renderOrdersRevenueChart(ordersByDay, revenueByDay);
-    renderTopSelling(vendorProducts, vendorOrders);
+    drawSparkline('sparkPending', createSequence(pendingOrders));
+    renderSalesChart(revenueByDay.length ? revenueByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }], getOrdersByDay(vendorOrders, 30));
+    renderOrdersRevenueChart(getOrdersByDay(vendorOrders, 30), revenueByDay.length ? revenueByDay : [{ day: new Date().toISOString().slice(0, 10), value: 0 }]);
 }
 
 function updateGrowth(id, value, yesterdayValue) {

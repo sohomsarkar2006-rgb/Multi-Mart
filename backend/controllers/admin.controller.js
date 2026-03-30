@@ -328,6 +328,86 @@ async function updateSettings(req, res, next) {
   }
 }
 
+async function updateUserStatus(req, res, next) {
+  try {
+    const { userId } = req.params;
+    const { status } = req.body;
+
+    if (!["active", "banned", "suspended"].includes(status)) {
+      const error = new Error("Invalid user status");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    await query(
+      `UPDATE users
+       SET status = ?
+       WHERE id = ?`,
+      [status, userId]
+    );
+
+    res.json({
+      success: true,
+      message: `User ${status} successfully`
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getPublicSettings(req, res, next) {
+  try {
+    const rows = await query(
+      `SELECT * FROM platform_settings WHERE is_public = 1`
+    );
+
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+
+    res.json({
+      success: true,
+      settings: {
+        taxRate: Number(settings.tax_rate || 5),
+        shippingCost: Number(settings.shipping_cost || 40),
+        freeShippingThreshold: Number(settings.free_shipping_threshold || 500),
+        maxQuantityPerItem: Number(settings.max_quantity_per_item || 10),
+        commissionRate: Number(settings.default_commission_rate || 10),
+        platformFee: Number(settings.platform_fee || 2.5)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getContactInfo(req, res, next) {
+  try {
+    const rows = await query(
+      `SELECT * FROM platform_settings WHERE setting_key IN ('support_email', 'support_phone', 'company_address', 'company_name')`
+    );
+
+    const contact = {};
+    rows.forEach(row => {
+      contact[row.setting_key] = row.setting_value;
+    });
+
+    res.json({
+      success: true,
+      contact: {
+        email: contact.support_email || 'support@multimart.com',
+        phone: contact.support_phone || '1-800-MULTIMART',
+        address: contact.company_address || 'MultiMart HQ, Business District',
+        name: contact.company_name || 'MultiMart',
+        website: contact.website || 'https://multimart.com'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   listVendors,
   listProducts,
@@ -340,5 +420,8 @@ module.exports = {
   updateSettings,
   listPendingProducts,
   updateProductStatus,
-  updateVendorStatus
+  updateVendorStatus,
+  updateUserStatus,
+  getPublicSettings,
+  getContactInfo
 };

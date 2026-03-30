@@ -1,8 +1,28 @@
 const CART_KEY = "shop_cart";
-const MAX_QUANTITY_PER_ITEM = 10;
-const TAX_RATE = 0.05;
-const FREE_SHIPPING_THRESHOLD = 500;
-const SHIPPING_COST = 40;
+// Dynamic configuration - will be loaded from backend
+let TAX_RATE = 0.05;
+let SHIPPING_COST = 40;
+let FREE_SHIPPING_THRESHOLD = 500;
+let MAX_QUANTITY_PER_ITEM = 10;
+
+// Load settings from backend when available
+async function loadCartSettings() {
+    if (window.MultiMartAPI) {
+        try {
+            const response = await window.MultiMartAPI.getPublicSettings();
+            const settings = response.settings || {};
+            
+            TAX_RATE = (settings.taxRate || 5) / 100;
+            SHIPPING_COST = settings.shippingCost || 40;
+            FREE_SHIPPING_THRESHOLD = settings.freeShippingThreshold || 500;
+            MAX_QUANTITY_PER_ITEM = settings.maxQuantityPerItem || 10;
+            
+            console.log('Cart settings loaded:', { TAX_RATE, SHIPPING_COST, FREE_SHIPPING_THRESHOLD, MAX_QUANTITY_PER_ITEM });
+        } catch (error) {
+            console.warn('Cart settings load failed, using defaults:', error.message);
+        }
+    }
+}
 
 function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -98,8 +118,7 @@ function getCartTotal() {
         subtotal,
         tax,
         shipping,
-        total: subtotal + tax + shipping,
-        itemCount: cart.reduce((c, i) => c + i.quantity, 0)
+        total: subtotal + tax + shipping
     };
 }
 
@@ -193,12 +212,12 @@ function proceedToCheckout() {
     window.location.href = "checkout.html";
 }
 
-function addProductToCart(productId) {
-    const r = addToCart(productId, 1);
-    alert(r.message);
-}
-function proceedToCheckout() {
-    alert("Checkout clicked");
-    window.location.href = "checkout.html";
-}
+// Load settings when cart page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadCartSettings();
+    renderCartItems();
+});
+
+// Load settings on page load
+window.addEventListener('load', loadCartSettings);
 
