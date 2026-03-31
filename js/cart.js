@@ -221,3 +221,41 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Load settings on page load
 window.addEventListener('load', loadCartSettings);
 
+// Initialize cart badge when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartBadge();
+});
+
+// Global function for adding products to cart (called from main.js)
+function addProductToCart(productId) {
+    console.log('Adding product to cart:', productId);
+    
+    // Check if getProductById function exists
+    if (typeof getProductById !== 'function') {
+        console.error('getProductById function not available');
+        alert('Product lookup unavailable. Please refresh the page.');
+        return;
+    }
+    
+    const result = addToCart(productId, 1);
+    console.log('Add to cart result:', result);
+    
+    if (result.success) {
+        // Update cart badge
+        updateCartBadge();
+        // Show success message
+        if (typeof showToast === 'function') {
+            showToast('Product added to cart!', 'success');
+        } else {
+            alert('Product added to cart!');
+        }
+    } else {
+        // Show error message
+        if (typeof showToast === 'function') {
+            showToast(result.message, 'error');
+        } else {
+            alert(result.message);
+        }
+    }
+}
+

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - MultiMart</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<!-- Promotional Banner -->
+<div class="promo-banner">
+    Free shipping on orders over ₹500 | Use code FREE20 for 20% off your first order
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-top">
+        <div class="navbar-left">
+            <a href="user-home.html" class="navbar-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">MultiMart</span>
+            </a>
+        </div>
+
+        <div class="navbar-center">
+            <a href="#" class="nav-link" onclick="openSearchModal(event)">Shop</a>
+            <a href="#" class="nav-link nav-link-expand" id="categoriesToggle" onclick="toggleCategoriesMenu(event)">
+                Categories <span class="nav-expand-icon">▾</span>
+            </a>
+            <a href="user-orders.html" class="nav-link active">My Orders</a>
+        </div>
+
+        <div class="navbar-right">
+            <button class="nav-icon-btn search-btn" title="Search">🔍</button>
+            <button class="nav-icon-btn" title="Theme">🌙</button>
+            <a href="cart.html" class="cart-link">
+                <span class="cart-icon">🛒</span>
+                <span class="cart-badge">0</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="user-orders-container">
+    <div class="orders-header">
+        <h1>My Orders</h1>
+        <p>Track and manage your orders</p>
+    </div>
+
+    <div class="orders-filters">
+        <button class="filter-btn active" onclick="filterOrders('all')">All Orders</button>
+        <button class="filter-btn" onclick="filterOrders('pending')">Pending</button>
+        <button class="filter-btn" onclick="filterOrders('processing')">Processing</button>
+        <button class="filter-btn" onclick="filterOrders('shipped')">Shipped</button>
+        <button class="filter-btn" onclick="filterOrders('delivered')">Delivered</button>
+        <button class="filter-btn" onclick="filterOrders('cancelled')">Cancelled</button>
+    </div>
+
+    <div id="ordersContainer" class="orders-container">
+        <div class="loading-orders">
+            <p>Loading your orders...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Menu Dropdown -->
+<div class="categories-menu hidden" id="categoriesMenu">
+    <div class="categories-menu-content">
+        <div class="categories-menu-header">
+            <div>
+                <p class="categories-eyebrow">DISCOVER</p>
+                <h2 class="categories-title">Shop by Category</h2>
+            </div>
+            <button class="categories-close" onclick="toggleCategoriesMenu(event)">✕</button>
+        </div>
+        <div class="categories-grid">
+            <div class="category-item" onclick="selectCategory('Electronics')">
+                <span class="category-icon">📱</span>
+                <span class="category-name">Electronics</span>
+                <span class="category-meta">Gadgets & Devices</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Fashion')">
+                <span class="category-icon">👗</span>
+                <span class="category-name">Fashion</span>
+                <span class="category-meta">Clothing & Style</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Accessories')">
+                <span class="category-icon">👜</span>
+                <span class="category-name">Accessories</span>
+                <span class="category-meta">Bags & More</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Home & Garden')">
+                <span class="category-icon">🏠</span>
+                <span class="category-name">Home & Garden</span>
+                <span class="category-meta">Living Space</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Sports')">
+                <span class="category-icon">⚽</span>
+                <span class="category-name">Sports</span>
+                <span class="category-meta">Fitness & Fun</span>
+            </div>
+            <div class="category-item" onclick="selectCategory('Books')">
+                <span class="category-icon">📚</span>
+                <span class="category-name">Books</span>
+                <span class="category-meta">Reading & Learning</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <div class="footer-logo">
+                <h3>⚡ MultiMart</h3>
+                <p>Discover curated collections of premium products from multiple vendors in one marketplace.</p>
+            </div>
+            <div class="social-links">
+                <a href="#" class="social-icon" title="Instagram">📷</a>
+                <a href="#" class="social-icon" title="Facebook">📘</a>
+                <a href="#" class="social-icon" title="Pinterest">📌</a>
+                <a href="#" class="social-icon" title="Twitter">🐦</a>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <h4>Shop</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="filterByCategory('Electronics')">Electronics</a></li>
+                <li><a href="#" onclick="filterByCategory('Fashion')">Fashion</a></li>
+                <li><a href="#" onclick="filterByCategory('Accessories')">Accessories</a></li>
+                <li><a href="#" onclick="filterByCategory('Home & Garden')">Home & Garden</a></li>
+                <li><a href="#" onclick="filterByCategory('Sports')">Sports</a></li>
+                <li><a href="#" onclick="filterByCategory('Books')">Books</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Help</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="showFAQ()">FAQ</a></li>
+                <li><a href="#" onclick="showShippingInfo()">Shipping & Returns</a></li>
+                <li><a href="#" onclick="showSizeGuide()">Size Guide</a></li>
+                <li><a href="#" onclick="showContact()">Contact Us</a></li>
+                <li><a href="#" onclick="showTrackOrder()">Track Order</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>About</h4>
+            <ul class="footer-links">
+                <li><a href="#" onclick="showAbout()">Our Story</a></li>
+                <li><a href="#" onclick="showVendors()">Become a Vendor</a></li>
+                <li><a href="#" onclick="showCareers()">Careers</a></li>
+                <li><a href="#" onclick="showPress()">Press</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section newsletter">
+            <h4>Join Our Newsletter</h4>
+            <p>Get 15% off your first order and stay updated on new arrivals.</p>
+            <div class="newsletter-form">
+                <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+                <button type="button" onclick="subscribeNewsletter()" class="newsletter-btn">Subscribe</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="footer-bottom-content">
+            <div class="copyright">
+                <p>© 2026 MultiMart. All rights reserved.</p>
+                <div class="legal-links">
+                    <a href="#" onclick="showPrivacy()">Privacy</a>
+                    <a href="#" onclick="showTerms()">Terms</a>
+                </div>
+            </div>
+            <div class="payment-methods">
+                <span class="payment-icon" title="Visa">💳</span>
+                <span class="payment-icon" title="Mastercard">💳</span>
+                <span class="payment-icon" title="Amex">💳</span>
+                <span class="payment-icon" title="PayPal">🅿</span>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="../js/main.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/cart.js"></script>
+
+<script>
+let currentFilter = 'all';
+let allOrders = [];
+
+// Load orders when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadPublicSettings();
+    loadUserOrders();
+});
+
+// Load user orders
+function loadUserOrders() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Get orders from localStorage
+    const orders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+    allOrders = orders.filter(order => order.customerEmail === currentUser.email);
+    
+    renderOrders();
+}
+
+// Render orders
+function renderOrders() {
+    const container = document.getElementById('ordersContainer');
+    
+    if (allOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-orders">
+                <div class="empty-icon">📦</div>
+                <h3>No orders yet</h3>
+                <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                <button class="btn-primary" onclick="window.location.href='user-home.html'">Start Shopping</button>
+            </div>
+        `;
+        return;
+    }
+
+    // Filter orders based on current filter
+    const filteredOrders = currentFilter === 'all' 
+        ? allOrders 
+        : allOrders.filter(order => order.status === currentFilter);
+
+    if (filteredOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-orders">
+                <h3>No ${currentFilter} orders</h3>
+                <p>You don't have any ${currentFilter} orders.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filteredOrders.map(order => `
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-info">
+                    <h3>Order #${order.id.slice(-8)}</h3>
+                    <p class="order-date">${new Date(order.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div class="order-status">
+                    <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                </div>
+            </div>
+            
+            <div class="order-items">
+                ${order.items ? order.items.slice(0, 3).map(item => `
+                    <div class="order-item">
+                        <img src="${item.image || 'https://via.placeholder.com/60'}" alt="${item.name}">
+                        <div class="item-info">
+                            <h4>${item.name}</h4>
+                            <p>Qty: ${item.quantity} | ${formatPrice(item.price)}</p>
+                        </div>
+                    </div>
+                `).join('') : ''}
+                ${order.items && order.items.length > 3 ? `<p class="more-items">+${order.items.length - 3} more items</p>` : ''}
+            </div>
+            
+            <div class="order-footer">
+                <div class="order-total">
+                    <span>Total: ${formatPrice(order.total)}</span>
+                </div>
+                <div class="order-actions">
+                    <button class="btn-secondary" onclick="viewOrder('${order.id}')">View Details</button>
+                    <button class="btn-secondary" onclick="trackOrder('${order.id}')">Track</button>
+                    ${order.status === 'pending' ? `<button class="btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Filter orders
+function filterOrders(filter) {
+    currentFilter = filter;
+    
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    renderOrders();
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    const statusMap = {
+        'pending': 'warning',
+        'processing': 'info',
+        'shipped': 'success',
+        'delivered': 'success',
+        'cancelled': 'danger'
+    };
+    return statusMap[status] || 'neutral';
+}
+
+// Navigation functions
+function selectCategory(category) {
+    closeCategoriesMenu();
+    window.location.href = `user-home.html?category=${category}`;
+}
+
+function toggleCategoriesMenu(event) {
+    event.preventDefault();
+    const menu = document.getElementById('categoriesMenu');
+    menu.classList.toggle('hidden');
+}
+
+function closeCategoriesMenu() {
+    document.getElementById('categoriesMenu').classList.add('hidden');
+}
+
+function openSearchModal(event) {
+    event.preventDefault();
+    // Search modal functionality
+    alert('Search functionality coming soon!');
+}
+
+// Check authentication
+if (!isLoggedIn()) {
+    window.location.href = 'login.html';
+}
+</script>
+
+<style>
+.user-orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.orders-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.orders-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.orders-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.orders-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #333;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.filter-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.orders-container {
+    display: grid;
+    gap: 20px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-info h3 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.warning { background: #fff3cd; color: #856404; }
+.status-badge.info { background: #d1ecf1; color: #0c5460; }
+.status-badge.success { background: #d4edda; color: #155724; }
+.status-badge.danger { background: #f8d7da; color: #721c24; }
+
+.order-items {
+    margin-bottom: 20px;
+}
+
+.order-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.order-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.item-info h4 {
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.item-info p {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.more-items {
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 10px;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.order-total span {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-secondary, .btn-danger {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.empty-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.empty-orders h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.empty-orders p {
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .orders-filters {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .order-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .order-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+</style>
+
+</body>
+</html>

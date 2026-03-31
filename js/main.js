@@ -1060,4 +1060,120 @@ function showVendorTerms() {
     alert('Vendor Agreement:\n\nAs a MultiMart vendor, you agree to:\n\n• Accurate product information\n• Timely order fulfillment\n• Fair pricing practices\n• Professional conduct\n• Platform policies compliance\n\nFull agreement at vendors.multimart.com/terms');
 }
 
+// ========== ORDER FUNCTIONS FOR USER PAGES ==========
+
+// Get orders from localStorage or API
+function getUserOrders() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return [];
+    
+    // Try to get orders from localStorage
+    const orders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+    return orders.filter(order => order.customerEmail === currentUser.email);
+}
+
+// View order details
+function viewOrder(orderId) {
+    const orders = getUserOrders();
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    const orderDetails = `
+Order #${order.id}
+Date: ${new Date(order.createdAt).toLocaleDateString()}
+Status: ${order.status}
+Total: ${formatPrice(order.total)}
+Items: ${order.items ? order.items.length : 0}
+Payment: ${order.paymentMethod || 'Pending'}
+
+${order.items ? order.items.map(item => 
+    `• ${item.name} - ${formatPrice(item.price)} x ${item.quantity}`
+).join('\n') : ''}
+    `;
+    
+    alert(orderDetails);
+}
+
+// Track order
+function trackOrder(orderId) {
+    const orders = getUserOrders();
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+    
+    const trackingInfo = `
+Tracking Order #${orderId}
+
+Status: ${order.status}
+Estimated Delivery: ${getEstimatedDelivery(order.status)}
+Carrier: MultiMart Express
+
+${getTrackingSteps(order.status)}
+    `;
+    
+    alert(trackingInfo);
+}
+
+// Get estimated delivery based on status
+function getEstimatedDelivery(status) {
+    const deliveryMap = {
+        'pending': '5-7 business days',
+        'processing': '3-5 business days', 
+        'shipped': '2-3 business days',
+        'delivered': 'Delivered',
+        'cancelled': 'Order cancelled'
+    };
+    
+    return deliveryMap[status] || 'Processing';
+}
+
+// Get tracking steps
+function getTrackingSteps(status) {
+    const steps = {
+        'pending': '✓ Order placed\n⏳ Processing order',
+        'processing': '✓ Order placed\n✓ Processing order\n⏳ Preparing for shipment',
+        'shipped': '✓ Order placed\n✓ Processing order\n✓ Order shipped\n⏳ In transit',
+        'delivered': '✓ Order placed\n✓ Processing order\n✓ Order shipped\n✓ Delivered',
+        'cancelled': '✗ Order cancelled'
+    };
+    
+    return steps[status] || 'Processing order';
+}
+
+// Cancel order
+function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+        return;
+    }
+    
+    const orders = getUserOrders();
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    
+    if (orderIndex === -1) {
+        alert('Order not found');
+        return;
+    }
+    
+    // Update order status
+    orders[orderIndex].status = 'cancelled';
+    orders[orderIndex].cancelledAt = new Date().toISOString();
+    
+    // Save back to localStorage
+    localStorage.setItem('user_orders', JSON.stringify(orders));
+    
+    alert('Order cancelled successfully');
+    
+    // Refresh the page if we're on an orders page
+    if (typeof renderUserOrders === 'function') {
+        renderUserOrders();
+    }
+}
+
 

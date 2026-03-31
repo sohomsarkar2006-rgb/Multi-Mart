@@ -30,8 +30,8 @@ button, input, select, textarea {
 
 body {
     font-family: 'Arial', sans-serif;
-    color: white;
-    background-color: #0f172a;
+    color: #333333;
+    background-color: #f5f5f5;
     line-height: 1.6;
 }
 
@@ -190,14 +190,13 @@ button:active {
 
 /* navigation bar */
 .navbar {
-    background: rgba(15, 23, 42, 0.95);
-    color: white;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333333;
     padding: 0;
     box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
     z-index: 1000;
-    backdrop-filter: blur(10px);
 }
 
 .navbar-top {
@@ -220,7 +219,7 @@ button:active {
     align-items: center;
     gap: 10px;
     text-decoration: none;
-    color: white;
+    color: #333333;
     font-size: 20px;
     font-weight: 700;
 }
@@ -247,7 +246,7 @@ button:active {
 }
 
 .nav-link {
-    color: rgba(255, 255, 255, 0.8);
+    color: #333333;
     text-decoration: none;
     font-size: 15px;
     transition: color 0.2s;
@@ -267,7 +266,7 @@ button:active {
 .nav-icon-btn {
     background: none;
     border: none;
-    color: white;
+    color: #333333;
     cursor: pointer;
     font-size: 20px;
     transition: all 0.2s;
@@ -300,7 +299,7 @@ button:active {
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: white;
+    color: #333333;
     font-size: 20px;
     padding: 8px 12px;
     border-radius: 8px;
@@ -521,16 +520,16 @@ button:active {
 
 .search-modal-input {
     flex: 1;
-    background: #0f172a;
-    border: 1px solid rgba(255, 153, 0, 0.3);
+    background: #ffffff;
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 12px 16px;
-    color: white;
+    color: #333;
     font-size: 16px;
 }
 
 .search-modal-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: #ccc;
 }
 
 .search-modal-input:focus {
@@ -638,7 +637,7 @@ button:active {
 
 .hero-title-white {
     display: block;
-    color: white;
+    color: #333333;
 }
 
 .hero-title-orange {
@@ -647,7 +646,7 @@ button:active {
 }
 
 .hero-subtitle {
-    color: rgba(255, 255, 255, 0.7);
+    color: #666666;
     font-size: 18px;
     line-height: 1.6;
     margin-bottom: 40px;
@@ -682,13 +681,14 @@ button:active {
 
 .btn-secondary {
     background: transparent;
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #333333;
+    border: 2px solid #333333;
 }
 
 .btn-secondary:hover {
-    border-color: white;
-    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    background: rgba(255, 153, 0, 0.1);
+    color: var(--primary-color);
 }
 
 .hero-image {
@@ -707,7 +707,7 @@ button:active {
 
 .hero-badge {
     position: absolute;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 12px 18px;
     border-radius: 8px;
@@ -2401,11 +2401,11 @@ button:disabled,
 
 /* ========== FOOTER STYLES ========== */
 .site-footer {
-    background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     border-top: 2px solid var(--primary-color);
     margin-top: 60px;
     padding: 50px 0 0;
-    color: var(--text-secondary);
+    color: #ecf0f1;
     position: relative;
     overflow: hidden;
 }
@@ -2452,7 +2452,7 @@ button:disabled,
 }
 
 .footer-logo p {
-    color: var(--text-secondary);
+    color: #bdc3c7;
     line-height: 1.7;
     margin-bottom: 24px;
     max-width: 300px;
@@ -2535,7 +2535,7 @@ button:disabled,
 }
 
 .footer-links a {
-    color: var(--text-secondary);
+    color: #bdc3c7;
     text-decoration: none;
     transition: all 0.3s ease;
     font-size: 15px;
@@ -2569,7 +2569,7 @@ button:disabled,
 }
 
 .newsletter p {
-    color: var(--text-secondary);
+    color: #bdc3c7;
     margin-bottom: 20px;
     line-height: 1.6;
     font-size: 15px;
@@ -2602,7 +2602,7 @@ button:disabled,
 }
 
 .newsletter-form input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #95a5a6;
 }
 
 .newsletter-btn {
@@ -2645,10 +2645,10 @@ button:disabled,
 }
 
 .footer-bottom {
-    background: linear-gradient(135deg, #060812 0%, #0a0e1a 100%);
+    background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
     margin-top: 50px;
     padding: 30px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
 }
 
@@ -2686,7 +2686,7 @@ button:disabled,
 }
 
 .copyright p {
-    color: var(--text-secondary);
+    color: #bdc3c7;
     font-size: 14px;
     margin: 0;
 }
@@ -2698,7 +2698,7 @@ button:disabled,
 }
 
 .legal-links a {
-    color: var(--text-secondary);
+    color: #bdc3c7;
     text-decoration: none;
     font-size: 13px;
     transition: color 0.3s ease;
