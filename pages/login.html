@@ -99,9 +99,19 @@
                                required>
                     </div>
 
-                    <div id="vendorFields" class="form-group hidden">
-                        <label for="storeName">Store Name (for vendors)</label>
-                        <input type="text" id="storeName" name="storeName">
+                    <div id="vendorFields" class="hidden">
+                        <div class="form-group">
+                            <label for="storeName">Store Name (for vendors)</label>
+                            <input type="text" id="storeName" name="storeName">
+                        </div>
+                        <div class="form-group">
+                            <label for="storeAddress">Store Address</label>
+                            <input type="text" id="storeAddress" name="storeAddress">
+                        </div>
+                        <div class="form-group">
+                            <label for="regNumber">Registration Number (optional)</label>
+                            <input type="text" id="regNumber" name="regNumber">
+                        </div>
                     </div>
 
                     <button type="submit" class="btn-primary">
@@ -179,13 +189,17 @@
             document.getElementById("registerModal").classList.add("active");
 
             const vendorFields = document.getElementById("vendorFields");
+            const storeNameInput = document.getElementById("storeName");
+            const storeAddressInput = document.getElementById("storeAddress");
 
             if (currentRole === "vendor") {
                 vendorFields.classList.remove("hidden");
-                document.getElementById("storeName").required = true;
+                storeNameInput.required = true;
+                storeAddressInput.required = true;
             } else {
                 vendorFields.classList.add("hidden");
-                document.getElementById("storeName").required = false;
+                storeNameInput.required = false;
+                storeAddressInput.required = false;
             }
         }
 
@@ -207,7 +221,9 @@
                 form.confirmPassword.value,
                 currentRole,
                 form.name.value,
-                form.storeName.value || null
+                form.storeName.value || null,
+                form.storeAddress.value || null,
+                form.regNumber.value || null
             );
 
             alert(result.message);
